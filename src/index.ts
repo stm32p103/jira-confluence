@@ -1,5 +1,6 @@
-import { SampleClass } from './sample';
+export declare const AJS: {
+    $: JQueryStatic
+}
 
-const sample = new SampleClass();
-console.log( sample.message() );
-
+let sample = AJS.$( '#sample' );
+sample.html( 'hello' );

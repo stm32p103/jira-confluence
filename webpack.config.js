@@ -1,7 +1,7 @@
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
-	mode: "development",
-	devtool: "inline-source-map",
-	entry: "./dist/out-tsc/index.js",
+	mode: "production",
+	entry: "./src/index.ts",
 	output: {
 		filename: "bundle.js"
 	},
@@ -14,5 +14,13 @@ module.exports = {
 			// all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
 			{ test: /\.tsx?$/, loader: "ts-loader" }
 		]
-	}
+	},
+	optimization: {
+		minimizer: [ new UglifyJsPlugin() ],
+	},
+	externals: [
+		{
+			'jquery': true
+		}
+	]
 };

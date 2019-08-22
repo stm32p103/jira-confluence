@@ -17,8 +17,18 @@
   },
   "homepage": "https://github.com/stm32p103/jira-confluence#readme",
   "devDependencies": {
+    "@types/jquery": "^3.3.31",
     "ts-loader": "^6.0.4",
+    "typescript": "^3.5.3",
+    "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.39.1",
     "webpack-cli": "^3.3.6"
+  },
+  "dependencies": {
+    "@nestjs/cli": "^6.6.4",
+    "@types/node": "^12.7.2",
+    "jquery": "^3.4.1",
+    "request": "^2.88.0",
+    "rxjs": "^6.5.2"
   }
 }
