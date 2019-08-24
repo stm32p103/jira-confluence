@@ -1,0 +1,31 @@
+{
+  "name": "jira-confluence",
+  "version": "1.0.0",
+  "description": "lib",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stm32p103/jira-confluence.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stm32p103/jira-confluence/issues"
+  },
+  "homepage": "https://github.com/stm32p103/jira-confluence#readme",
+  "devDependencies": {
+    "@types/jquery": "^3.3.31",
+    "ts-loader": "^6.0.4",
+    "typescript": "^3.5.3",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "webpack": "^4.39.1",
+    "webpack-cli": "^3.3.6"
+  },
+  "dependencies": {
+    "jquery": "^3.4.1",
+    "rxjs": "^6.5.2"
+  }
+}
