@@ -1,10 +1,10 @@
-export type RestFindAllParam = {
+type RestFindAllParam = {
     expand?: string;
     start?: number;
     limit?: number;
 }
 
-export type RestFindByKeyParam = {
+type RestFindByKeyParam = {
     expand?: string;
 }
 
@@ -14,12 +14,38 @@ type ContentPropertyReferer = {
     param?: { [ key: string ]: any };
 }
 
-export class ContentProperty {
+export interface ContentProperty {
+    id: string;
+    key: string;
+    value: any;
+    version: {
+        when: Date;
+        number: number;
+    }
+}
+
+export interface Range {
+    start: number;          // start index
+    limit: number;          // element count
+    size: number;           // max element count
+}
+
+export interface ContentPropertyList {
+    map: { [key: string]: string };
+    range: Range;
+}
+
+export class ContentPropertyAccessor {
+    /* ------------------------------------------------------------------------
+     * base: AJS.params.baseUrlから取得すると良い
+     * --------------------------------------------------------------------- */
+    
+    constructor( private base: string ) {}
 	/* ------------------------------------------------------------------------
-	 * URLを作る。
+	 * URLを作る
 	 * --------------------------------------------------------------------- */
 	private toUrl( ref: ContentPropertyReferer ) {
-	    let res = [ this.base, 'content', ref.cid, 'property' ].join( '/' );
+	    let res = [ this.base, 'rest/api/content', ref.cid, 'property' ].join( '/' );
 	    
 	    if( ref.key ) {
 	        res = res + '/' + ref.key;
@@ -39,7 +65,7 @@ export class ContentProperty {
 	}
 
     /* ------------------------------------------------------------------------
-     * URLを作る。
+     * ｊQueryを使ってリクエストする(ここだけAJSに依存)
      * --------------------------------------------------------------------- */
 	private async request( method: string, ref: ContentPropertyReferer, data?: any ) {
 	    let url = this.toUrl( ref );
@@ -53,15 +79,15 @@ export class ContentProperty {
         } };
 	    
 	    if( data !== undefined ) {
-	        option.value = data;
-	        option.headers = { 'Content-Type': 'application/json' };
+	        option.data = JSON.stringify( data );
+	        option.headers = {
+                'Content-Type': 'application/json'
+            }
 	    }
-	    
 	    await AJS.$.ajax( option );
 	    return response;
 	}
 	
-	constructor( private base: string ) {}
 	/* ------------------------------------------------------------------------
 	 * 全てのプロパティを取得する(REST API)
 	 * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-findAll
@@ -82,6 +108,7 @@ export class ContentProperty {
 
 	/* ------------------------------------------------------------------------
 	 * key の値を取得する。(REST API)
+	 * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-findByKey
 	 * --------------------------------------------------------------------- */
 	private async restFindByKey( cid: string, key: string, param: RestFindByKeyParam = {} ) {
         let response;
@@ -102,37 +129,58 @@ export class ContentProperty {
      * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-create
      * --------------------------------------------------------------------- */
 	private async restCreate( cid: string, key: string, value: any ) {
-        let response = await this.request( 'post', { cid: cid, key: key }, { 'value': value } );
-        console.log( response );
+        let response = await this.request( 'post', { cid: cid }, { key: key, value: value } );
         return response;
     }
-	/* ------------------------------------------------------------------------
-	 * key を value で更新する。バージョンは数字で指定する。(過去と同じ値だとエラー)
-	 * --------------------------------------------------------------------- */
-	async restUpdate( cid: string, key: string, value: any, version: number ) {
-        let response = await this.request( 'post', { cid: cid, key: key }, { 'value': value, 'version': { 'number': version } } );
-        console.log( response );
-	    return response;
-	}
+    /* ------------------------------------------------------------------------
+     * key を value で更新する。バージョンは数字で指定する。(過去と同じ値だとエラー)
+     * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-update
+     * --------------------------------------------------------------------- */
+    async restUpdate( cid: string, key: string, value: any, version: number ) {
+        let response = await this.request( 'put', { cid: cid, key: key }, { key: key, value: value, version: { number: version } } );
+        return response;
+    }
+    /* ------------------------------------------------------------------------
+     * keyを削除。
+     * 404 NOT FOUND はエラーとみなさない。
+     * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-delete
+     * --------------------------------------------------------------------- */
+    async restDelete( cid: string, key: string ) {
+        try {
+            await this.request( 'delete', { cid: cid, key: key } );
+        } catch( err ) {            
+            if( err.status !== 404 ) {
+                throw new Error( err );
+            }
+        }
+    }
 	/* ------------------------------------------------------------------------
 	 * 全てのプロパティを取得する
 	 * --------------------------------------------------------------------- */
-	async getAll( cid: string, param?: RestFindAllParam ) {
-		let res = await this.restFindAll( cid, param );
-		let property = {};
+	async getAll( cid: string ): Promise<ContentPropertyList> {
+		let response = await this.restFindAll( cid );
+		let map = {};
 
-		res.results.map( kv => {
-			property[ kv.key ] = kv.value;
+		response.results.map( kv => {
+		    map[ kv.key ] = kv as ContentProperty;
 		} )
-		return property;
+		return {
+		    map: map,
+		    range: {
+		        start: response.start,
+		        limit: response.limit,
+		        size: response.size
+		    }
+		};
 	} 
 
 	/* ------------------------------------------------------------------------
 	 * key の値を取得する。
 	 * --------------------------------------------------------------------- */
-	async get( cid: string, key: string, param?: RestFindByKeyParam ) {
-		let res = await this.restFindByKey(cid, key, param );
-		return res.value;
+	async get( cid: string, key: string ): Promise<ContentProperty> {
+		let response = await this.restFindByKey(cid, key );
+		
+		return response as ContentProperty;
 	}
 	
 	/* ------------------------------------------------------------------------
@@ -140,9 +188,9 @@ export class ContentProperty {
 	 * リクエストが1回余計に必要なのは、例えば投機的にUpdateしてNGならCreateするよう改善する。
 	 * Updateをするために、newVersionを使うため予約するが、今は使わない
 	 * --------------------------------------------------------------------- */
-	async set( cid, key, value, newVersion ) {
+	async set( cid: string, key: string, value: any ): Promise<ContentProperty> {
 		const latest = await this.restFindByKey( cid, key, { 'expand': 'version' } );
-		
+
 		let response;
 		if( latest !== null ) {
 			const version = 1 + latest.version.number;
@@ -150,7 +198,16 @@ export class ContentProperty {
 		} else {
 			response = this.restCreate( cid, key, value );
 		}
-		return response;
+
+        return response as ContentProperty;
+	}
+
+    /* ------------------------------------------------------------------------
+     * keyを削除する。
+     * 一括削除はAPIが無いため、負荷を抑えるために1つずつ削除する。
+     * --------------------------------------------------------------------- */
+	async delete( cid: string, key: string ) {
+	    await this.restDelete( cid, key );
 	}
 }
 

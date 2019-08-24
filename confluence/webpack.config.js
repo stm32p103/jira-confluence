@@ -15,9 +15,9 @@ module.exports = {
 			{ test: /\.tsx?$/, loader: "ts-loader" }
 		]
 	},
-	optimization: {
-		minimizer: [ new UglifyJsPlugin() ],
-	},
+//	optimization: {
+//		minimizer: [ new UglifyJsPlugin() ],
+//	},
 	externals: [
 		{
 			'jquery': true
