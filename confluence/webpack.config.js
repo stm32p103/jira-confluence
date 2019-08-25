@@ -1,7 +1,7 @@
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
 	mode: "production",
-	entry: "./index.ts",
+	entry: "./index.tsx",
 	output: {
 		filename: "index.js"
 	},
@@ -15,9 +15,9 @@ module.exports = {
 			{ test: /\.tsx?$/, loader: "ts-loader" }
 		]
 	},
-//	optimization: {
-//		minimizer: [ new UglifyJsPlugin() ],
-//	},
+	optimization: {
+		minimizer: [ new UglifyJsPlugin() ],
+	},
 	externals: [
 		{
 			'jquery': true

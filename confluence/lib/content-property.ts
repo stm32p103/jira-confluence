@@ -156,6 +156,7 @@ export class ContentPropertyAccessor {
     }
 	/* ------------------------------------------------------------------------
 	 * 全てのプロパティを取得する
+	 * TODO: Pagenationに対応する
 	 * --------------------------------------------------------------------- */
 	async getAll( cid: string ): Promise<ContentPropertyList> {
 		let response = await this.restFindAll( cid );

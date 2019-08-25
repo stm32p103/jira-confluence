@@ -18,6 +18,8 @@
   "homepage": "https://github.com/stm32p103/jira-confluence#readme",
   "devDependencies": {
     "@types/jquery": "^3.3.31",
+    "@types/react": "^16.9.2",
+    "@types/react-dom": "^16.9.0",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.3",
     "uglifyjs-webpack-plugin": "^2.2.0",
@@ -26,6 +28,8 @@
   },
   "dependencies": {
     "jquery": "^3.4.1",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
     "rxjs": "^6.5.2"
   }
 }
