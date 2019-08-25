@@ -1,5 +1,6 @@
 import { ContentPropertyAccessor } from './lib/content-property';
 import { Hello } from './components/hello';
+import { Clock } from './components/clock';
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
@@ -8,7 +9,7 @@ AJS.$(document).ready( async () => {
     
     sample.each( ( index, element ) => {
         const x = element.getAttribute('id');
-        ReactDOM.render( <Hello macroId={x}/>,element );
+        ReactDOM.render( <Clock />, element );
     } );
     
 //    let property = new ContentPropertyAccessor( AJS.params.baseUrl );
