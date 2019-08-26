@@ -2,7 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": ".",
-    "outDir": "dister",
+    "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
     "module": "es2015",
@@ -21,5 +21,5 @@
       "dom"
     ]
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist", "dist-lib"]
 }

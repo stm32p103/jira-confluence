@@ -1,9 +1,11 @@
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
 	mode: "production",
-	entry: "./index.tsx",
+	entry: "./lib/index.ts",
 	output: {
-		filename: "index.js"
+		filename: "confluence-lib.js",
+	    library: 'ConfluenceLib',
+	    libraryTarget: 'var'
 	},
 	resolve: {
     // Add `.ts` and `.tsx` as a resolvable extension.
@@ -12,7 +14,7 @@ module.exports = {
 	module: {
 		rules: [
 			// all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
-			{ test: /\.tsx?$/, loader: "ts-loader" }
+			{ test: /\.tsx?$/, loader: "ts-loader", options: { configFile: "tsconfig.lib.json" } }
 		]
 	},
 	optimization: {
@@ -21,7 +23,7 @@ module.exports = {
 	externals: [
 		{
 			'jquery': true,
-			'ConfLib': true
+			'react': true
 		}
 	]
 };
