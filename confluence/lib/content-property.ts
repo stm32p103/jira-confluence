@@ -9,7 +9,7 @@ type RestFindByKeyParam = {
 }
 
 type ContentPropertyReferer = {
-    cid: string;
+    cid?: string;
     key?: string;
     param?: { [ key: string ]: any };
 }
@@ -31,8 +31,20 @@ export interface Range {
 }
 
 export interface ContentPropertyList {
-    map: { [key: string]: string };
+    map: { [keyOrId: string]: ContentProperty };
     range: Range;
+}
+
+function resultToContentProperty( result: any ): ContentProperty {
+    return {
+        id: result.id,
+        key: result.key,
+        value: result.value,
+        version: {
+            when: result.version.when,
+            number: result.version.number
+        }
+    };
 }
 
 export class ContentPropertyAccessor {
@@ -51,6 +63,24 @@ export class ContentPropertyAccessor {
 	        res = res + '/' + ref.key;
 	    }
 	    
+	    res = res + this.toQueryString( ref );
+	    
+	    return res;
+	}
+    /* ------------------------------------------------------------------------
+     * 検索URLを作る
+     * --------------------------------------------------------------------- */
+	private searchUrl( ref: ContentPropertyReferer ) {
+        let res = [ this.base, 'rest/api/content/search' ].join( '/' );
+        res = res + this.toQueryString( ref );
+        return res;
+	}
+
+    /* ------------------------------------------------------------------------
+     * クエリ文字列を作る
+     * --------------------------------------------------------------------- */
+	private toQueryString( ref: ContentPropertyReferer ) {
+	    let res  = '';
 	    if( ref.param ) {
 	        let q = [];
 	        for( let key in ref.param ) {
@@ -58,18 +88,15 @@ export class ContentPropertyAccessor {
 	        }
 
 	        if( q.length > 0 ) {
-	            res = res + '?' + q.join( ',' );
+	            res = res + '?' + q.join( '&' );
 	        }
 	    }
 	    return res;
 	}
-
     /* ------------------------------------------------------------------------
      * ｊQueryを使ってリクエストする(ここだけAJSに依存)
      * --------------------------------------------------------------------- */
-	private async request( method: string, ref: ContentPropertyReferer, data?: any ) {
-	    let url = this.toUrl( ref );
-	    
+	private async request( method: string, url: string, data?: any ) {
         let response;
 	    let option: any = {
             url: url,
@@ -94,8 +121,9 @@ export class ContentPropertyAccessor {
 	 * --------------------------------------------------------------------- */
 	private async restFindAll( cid: string, param: RestFindAllParam = {} ) {
 		let response;
+		const url = this.toUrl( { cid: cid, param: param } );
 		try {
-		    response = await this.request( 'get', { cid: cid, param: param } );					
+		    response = await this.request( 'get', url );					
 		} catch( err ) {
 			if( err.status === 404 ) {
 				response = null;
@@ -112,8 +140,9 @@ export class ContentPropertyAccessor {
 	 * --------------------------------------------------------------------- */
 	private async restFindByKey( cid: string, key: string, param: RestFindByKeyParam = {} ) {
         let response;
+        const url = this.toUrl( { cid: cid, key: key, param: param } );
         try { 
-            response = await this.request( 'get', { cid: cid, key: key, param: param } );
+            response = await this.request( 'get', url );
         } catch( err ) {
             if( err.status === 404 ) {
                 response = null;
@@ -129,15 +158,17 @@ export class ContentPropertyAccessor {
      * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-create
      * --------------------------------------------------------------------- */
 	private async restCreate( cid: string, key: string, value: any ) {
-        let response = await this.request( 'post', { cid: cid }, { key: key, value: value } );
+        const url = this.toUrl( { cid: cid } );
+        let response = await this.request( 'post', url, { key: key, value: value } );
         return response;
     }
     /* ------------------------------------------------------------------------
      * key を value で更新する。バージョンは数字で指定する。(過去と同じ値だとエラー)
      * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-update
      * --------------------------------------------------------------------- */
-    async restUpdate( cid: string, key: string, value: any, version: number ) {
-        let response = await this.request( 'put', { cid: cid, key: key }, { key: key, value: value, version: { number: version } } );
+	private async restUpdate( cid: string, key: string, value: any, version: number ) {
+        const url = this.toUrl( { cid: cid, key: key } );
+        let response = await this.request( 'put', url, { key: key, value: value, version: { number: version } } );
         return response;
     }
     /* ------------------------------------------------------------------------
@@ -145,14 +176,33 @@ export class ContentPropertyAccessor {
      * 404 NOT FOUND はエラーとみなさない。
      * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-delete
      * --------------------------------------------------------------------- */
-    async restDelete( cid: string, key: string ) {
+	private async restDelete( cid: string, key: string ) {
+        const url = this.toUrl( { cid: cid, key: key } );
         try {
-            await this.request( 'delete', { cid: cid, key: key } );
+            await this.request( 'delete', url );
         } catch( err ) {            
             if( err.status !== 404 ) {
                 throw new Error( err );
             }
         }
+    }
+    /* ------------------------------------------------------------------------
+     * 検索
+     * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content-search
+     * 更新日把握のため versionも取得する。もう少し拡張性のある書き方にしたい。
+     * --------------------------------------------------------------------- */
+    private async restSearch( cql: string, key: string ) {
+        let response = null;
+        const url = this.searchUrl( { param: { cql: cql, expand: 'version,metadata.properties.' + key } } );
+        try {
+            response = await this.request( 'get', url )
+        } catch( err ) {
+            // invalid cql -> null. other -> err.            
+            if( err.status !== 400 ) {
+                throw new Error( err );
+            }
+        }
+        return response;
     }
 	/* ------------------------------------------------------------------------
 	 * 全てのプロパティを取得する
@@ -160,11 +210,11 @@ export class ContentPropertyAccessor {
 	 * --------------------------------------------------------------------- */
 	async getAll( cid: string ): Promise<ContentPropertyList> {
 		let response = await this.restFindAll( cid );
-		let map = {};
+		let map: { [key:string]: ContentProperty } = {};
 
-		response.results.map( kv => {
-		    map[ kv.key ] = kv as ContentProperty;
-		} )
+		response.results.forEach( result => {
+		    map[ result.key ] = resultToContentProperty( result );
+		} );
 		return {
 		    map: map,
 		    range: {
@@ -183,6 +233,30 @@ export class ContentPropertyAccessor {
 		
 		return response as ContentProperty;
 	}
+	
+    /* ------------------------------------------------------------------------
+     * CQLに該当するプロパティを取得する
+     * TODO: Pagenationに対応する
+     * --------------------------------------------------------------------- */
+    async getByCql( cql: string, key: string ): Promise<ContentPropertyList> {
+        let response = await this.restSearch( cql, key );
+        let map: { [ id:string ]: ContentProperty } = {};
+
+        response.results.forEach( result => {
+            const property = result.metadata.properties[ key ];
+            if( property !== undefined ) {
+                map[ result.id ] = resultToContentProperty( property );               
+            } 
+        } );
+        return {
+            map: map,
+            range: {
+                start: response.start,
+                limit: response.limit,
+                size: response.size
+            }
+        };
+    } 
 	
 	/* ------------------------------------------------------------------------
 	 * key が存在していなかったら新規作成、存在していたらバージョンを1つ挙げて更新する。
