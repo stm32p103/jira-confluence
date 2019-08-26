@@ -1,11 +1,11 @@
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
 	mode: "production",
-	entry: "./lib/index.ts",
+	entry: "./lib/content-property.ts",
 	output: {
 		filename: "confluence-lib.js",
 	    library: 'ConfluenceLib',
-	    libraryTarget: 'var'
+	    libraryTarget: 'commonjs2'
 	},
 	resolve: {
     // Add `.ts` and `.tsx` as a resolvable extension.

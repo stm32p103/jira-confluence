@@ -20,8 +20,7 @@ module.exports = {
 	},
 	externals: [
 		{
-			'jquery': true,
-			'ConfLib': true
+			'jquery': true
 		}
 	]
 };

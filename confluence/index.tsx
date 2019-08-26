@@ -5,4 +5,3 @@ AJS.$(document).ready( async () => {
     let test = await property.getByCql( 'space=TEST', 'dropdowns' );
     console.log( test );
 } )
-
