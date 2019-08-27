@@ -1,9 +1,9 @@
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
-	mode: "production",
+	mode: "development",
 	entry: "./lib/content-property.ts",
 	output: {
-		filename: "confluence-lib.js",
+		filename: "content-property.js",
 	    library: 'ConfluenceLib',
 	    libraryTarget: 'commonjs2'
 	},
@@ -17,9 +17,9 @@ module.exports = {
 			{ test: /\.tsx?$/, loader: "ts-loader", options: { configFile: "tsconfig.lib.json" } }
 		]
 	},
-	optimization: {
-		minimizer: [ new UglifyJsPlugin() ],
-	},
+//	optimization: {
+//		minimizer: [ new UglifyJsPlugin() ],
+//	},
 	externals: [
 		{
 			'jquery': true,
