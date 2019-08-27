@@ -1,19 +1,18 @@
 import React, { Component } from 'react';
+import * as ReactDOM from "react-dom";
+import { Dropdown } from '../components';
+import { ContentPropertyAccessor, Item, DropdownItem } from '../lib';
 
-export interface Props {
-    pageId: string;
-}
+export interface Props {}
 
 export interface State {
     selectedCid: string;
 }
-
 export class App extends React.Component<Props,State> {
-    state: State;
     constructor( public prop: Props ) {
          super( prop );
          this.state = {
-             selectedCid: this.props.pageId
+             selectedCid: AJS.params.pageId
          };
     }
     
@@ -22,16 +21,17 @@ export class App extends React.Component<Props,State> {
 
     render() {
         return <form className="aui">
-    <div className="field-group">
-        <label>Default field<span className="aui-icon icon-required">required</span></label>
-        <input className="text" type="text" id="text-input" name="text-input" title="Text input"/>
-        <div className="description">Default width input of a required field</div>
-    </div>
-    <Button/>
-</form>;
+            <div className="field-group">
+                <label>PageId<span className="aui-icon icon-required">required</span></label>
+                <input className="text" type="text"
+                       value={ this.state.selectedCid }
+                       onChange={ ( e ) => { this.setState( { selectedCid: e.target.value } ) } }/>
+                <div className="description">ドロップダウンの元データを取得するページIDを指定する。</div>
+            </div>
+            <div className="buttons-container"><div className="buttons">
+                <input className="button submit" type="submit" value="Save" id="comment-save-button"/>
+            </div></div>
+        </form>;
     }
 }
 
-const Button = (props) => <div className="buttons-container"><div className="buttons">
-                            <input className="button submit" type="submit" value="Save" id="comment-save-button"/>
-                          </div></div>;
