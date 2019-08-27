@@ -6,39 +6,27 @@ export interface Item {
     items: Item[];
 }
 
+/* ----------------------------------------------------------------------------
+ * base: AJS.params.baseUrlから取得すると良い
+ * ------------------------------------------------------------------------- */
 export class DropdownItem {
-    private items: Item[];
-
-    constructor( root?: Element ) {
-        if( root ) {
-            this.fromElement( root );
-        } else {
-            this.items = [];
-        }
-    }
-
-    fromItem( items: Item[] ) {
-        this.items = items;
-    }
-    
-    fromElement( root: Element ) {
+    static fromElement( root: Element ) {
         if( root.tagName.toLowerCase() !== 'dropdown' ) {
-            throw new Error( 'Provided element is not dropdown' );
+            throw new Error( 'Provided element is not dropdown.' );
         }
         
         let items: Item[] = [];
         for( let i = 0; i < root.children.length; i++ ) {
-            console.log( root );
-            let item = this.elementToItem( root.children[i] );
+            let item = DropdownItem.elementToItem( root.children[i] );
             
             if( item ) {
                 items.push( item );
             }
         }
-        this.items = items;
+        return items;
     }
     
-    private elementToItem( item: Element ): Item {
+    private static elementToItem( item: Element ): Item {
         if( item.tagName.toLowerCase() !== 'item' ) {
             return null;
         }
@@ -61,25 +49,30 @@ export class DropdownItem {
         
         return result;
     }
-    
-    private itemsToJsxElements( items: Item[] ): JSX.Element[] {
-        let result = items.map( item => {
-            let elem: JSX.Element;
-            if( item.items.length > 0 ) {
-                elem = <optgroup label="{item.label}">{ this.itemsToJsxElements( item.items ) }</optgroup>
-            } else {
-                elem = <option value={item.value} >{item.label}</option>                                
-            }
-            return elem;
-        } )
-        return result;
-    }
-    
-    getItem(): Item[] {
-        return this.items;
-    }
+    private items: Item[];
+    constructor( items: Item[] ){ this.setItems( items ) }
+    setItems( items: Item[] ) { this.items = [].concat( items ) }
+    getItems(): Item[] { return [].concat( this.items ) }
+
+    /* ------------------------------------------------------------------------
+     * 再起呼び出しで選択肢を作る
+     * 複数階層は未対応。オーバーロードすると、独自の形式で出力できる。
+     * --------------------------------------------------------------------- */
+   protected itemsToJsxElements( items: Item[], depth: number ): JSX.Element[] {
+       let result = items.map( item => {
+           let elem: JSX.Element;
+        
+           if( item.items.length > 0 && depth < 1 ) {
+               elem = <optgroup label={item.label}>{ this.itemsToJsxElements( item.items, depth+1 ) }</optgroup>
+           } else {
+               elem = <option value={item.value} >{item.label}</option>                                
+           }
+           return elem;
+       } ).filter( item => item !== undefined );
+       return result;
+   }
     
     toJsx(): JSX.Element[] {
-        return this.itemsToJsxElements( this.items );
+        return this.itemsToJsxElements( this.items, 0 );
     }
 }
