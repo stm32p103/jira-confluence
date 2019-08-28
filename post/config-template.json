@@ -1,0 +1,5 @@
+{
+    "baseUrl": "http://localhost:8090",
+    "pageId": "3407873",
+    "src": "../confluence/dist/index.js"
+}
