@@ -50,7 +50,7 @@ class HttpHeader {
 		if (Buffer.isBuffer(str)) {
 			buffer = str;
 		} else {
-			buffer = new Buffer( str.toString(), 'binary' );
+			buffer = new Buffer.from( str.toString(), 'binary' );
 		}
 		return buffer.toString( 'base64' );
 	}
@@ -73,7 +73,6 @@ async function get( base, pid ) {
 	
 	console.log( '-----------------------------------------------------------' );
 	console.log( 'GET: ' + url );
-	console.log( '-----------------------------------------------------------' );
 	try {
 		const response = await http.get( url, { 'headers': headers.body } );
 		const current = JSON.parse( response ); 
@@ -108,9 +107,9 @@ async function update( base, pid, content ) {
 		headers.addContentType( 'application/json' );
 		console.log( '-----------------------------------------------------------' );
 		console.log( 'PUT: ' + url );
-		console.log( '-----------------------------------------------------------' );
 		const response = await http.put( url, { 'headers': headers.body, 'json': data } );
-		
+
+		console.log( '-----------------------------------------------------------' );
 		console.log( 'Done. Version: ' + response.version.number );
 	} catch( err ) {
 		console.error( 'error' )
