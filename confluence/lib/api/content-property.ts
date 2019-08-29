@@ -1,5 +1,5 @@
 import { Range } from './range';
-import { RestAPI, Request } from '../request';
+import { RestAPI, Request, queryToString } from '../request';
 
 export interface ContentProperty {
     cid: string;
@@ -26,20 +26,6 @@ function apiUrl( cid: string, key?: string ) {
     
     return url;
 }
-
-/* ------------------------------------------------------------------------
- * クエリパラメータを文字列にする
- * --------------------------------------------------------------------- */
-function queryToString( query: { [key: string]: string } = {} ) {
-    let tmp = '';
-    const keys = Object.keys( query );
-    
-    if( keys.length > 0 ) {
-        tmp = '?' + keys.map( key => key + '=' + query[ key ] ).join( '&' );
-    }
-    return tmp;
-}
-
 
 /* ------------------------------------------------------------------------
  * 受け取ったデータを整形する
@@ -186,6 +172,7 @@ export class ContentPropertyAPI {
 
     /* ------------------------------------------------------------------------
      * CQLに該当するプロパティを取得する
+     * Rangeは、Content Propertyが無いものも含んでいるため、結果の数とは合致しない。
      * --------------------------------------------------------------------- */
     async getByCql( cql: string, key: string, range: Range = new Range() ): Promise<ContentPropertyList> {
         let response = await this.restSearch( {
@@ -194,8 +181,6 @@ export class ContentPropertyAPI {
             start: range.start,
             limit: range.limit
         } );
-        
-        console.log( response );
         
         let list: ContentProperty[] = response.results
                                               .filter( result => result.metadata.properties[ key ] !== undefined )

@@ -8,7 +8,7 @@ export type RequestOption = {
 export class Request {
     method: Method;
     url: string;
-    json?: any;
+    data?: any;
     
     private constructor( req: Partial<Request> ) {
         Object.assign( this, req );
@@ -44,6 +44,6 @@ export class Request {
     }
     
     attatchData( data: any ) {
-        this.json = data;
+        this.data = data;
     }
 }

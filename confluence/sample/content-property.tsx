@@ -1,6 +1,6 @@
 import { ContentPropertyAPI, AJSRestAPI } from '../lib';
 
-export async function testContentProperty( baseUrl: string, cid: string, key: string ) {
+export async function testContentProperty( baseUrl: string, cid: string, key: string, cql: string ) {
     const api = new ContentPropertyAPI( new AJSRestAPI( baseUrl ) );
     
     console.log( '[get]' );
@@ -20,6 +20,6 @@ export async function testContentProperty( baseUrl: string, cid: string, key: st
     console.log( p );
 
     console.log( '[getByCql]' );
-    let x = await api.getByCql( 'space=TEST and type=page', key );
+    let x = await api.getByCql( cql, key );
     console.log( x );
 }

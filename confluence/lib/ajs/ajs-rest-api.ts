@@ -13,8 +13,8 @@ export class AJSRestAPI {
             }
         };
 
-        if( req.json ) {
-            option.data = JSON.stringify( req.json );
+        if( req.data ) {
+            option.data = JSON.stringify( req.data );
             option. dataType = 'json';
             option.contentType = 'application/json; charset=UTF-8';
         }
