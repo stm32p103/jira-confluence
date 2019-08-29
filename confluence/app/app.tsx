@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import * as ReactDOM from "react-dom";
 import { Dropdown } from '../components';
-import { ContentPropertyAccessor, Item, DropdownItem } from '../lib';
+import { Item, DropdownItem } from '../lib';
 
 export interface Props {}
 

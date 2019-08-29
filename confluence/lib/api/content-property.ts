@@ -1,9 +1,5 @@
 import { Range } from './range';
-
-interface Refererence {
-    cid?: string;
-    key?: string;
-}
+import { RestAPI, Request } from '../request';
 
 export interface ContentProperty {
     cid: string;
@@ -21,100 +17,65 @@ export interface ContentPropertyList {
     range: Range;
 }
 
-export class ContentPropertyAccessor {
-    /* ------------------------------------------------------------------------
-     * base: AJS.params.baseUrlから取得すると良い
-     * --------------------------------------------------------------------- */
-    constructor( private base: string ) {}
+function apiUrl( cid: string, key?: string ) {
+    let url = [ '/rest/api/content', cid, 'property' ].join( '/' );
     
-	/* ------------------------------------------------------------------------
-	 * URLを作る
-	 * --------------------------------------------------------------------- */
-	private toUrl( ref: Refererence, param?: any ) {
-	    let url = [ this.base, 'rest/api/content', ref.cid, 'property' ].join( '/' );
-	    
-	    if( ref.key ) {
-	        url = url + '/' + ref.key;
-	    }
-	    
-	    url = url + this.toQueryString( param );
-	    return url;
-	}
-    /* ------------------------------------------------------------------------
-     * 検索URLを作る
-     * --------------------------------------------------------------------- */
-	private searchUrl( param: any ) {
-        let url = [ this.base, 'rest/api/content/search' ].join( '/' ) + this.toQueryString( param );
-        return url;
-	}
+    if( key ) {
+        url = url + '/' + key;
+    }
+    
+    return url;
+}
 
-    /* ------------------------------------------------------------------------
-     * データを成型する
-     * --------------------------------------------------------------------- */
-	private format( cid: string, result: any ): ContentProperty {
-	    let tmp = null;
-        if( result !== null ) {
-            tmp = {
-                cid: cid,
-                id: result.id,
-                key: result.key,
-                value: result.value,
-                version: {
-                    when: result.version.when,
-                    number: result.version.number
-                }
-            };
-        }
-        return tmp;
-	}
-    /* ------------------------------------------------------------------------
-     * クエリ文字列を作る
-     * --------------------------------------------------------------------- */
-	private toQueryString( param: any ) {
-	    let res  = '';
-	    if( param ) {
-	        let q = [];
-	        for( let key in param ) {
-	            q.push( key + '=' + param[ key ] );
-	        }
+/* ------------------------------------------------------------------------
+ * クエリパラメータを文字列にする
+ * --------------------------------------------------------------------- */
+function queryToString( query: { [key: string]: string } = {} ) {
+    let tmp = '';
+    const keys = Object.keys( query );
+    
+    if( keys.length > 0 ) {
+        tmp = '?' + keys.map( key => key + '=' + query[ key ] ).join( '&' );
+    }
+    return tmp;
+}
 
-	        if( q.length > 0 ) {
-	            res = res + '?' + q.join( '&' );
-	        }
-	    }
-	    return res;
-	}
-    /* ------------------------------------------------------------------------
-     * ｊQueryを使ってリクエストする(ここだけAJSに依存)
-     * --------------------------------------------------------------------- */
-	private async request( method: string, url: string, data?: any ) {
-        let response;
-	    let option: any = {
-            url: url,
-            type: method,
-            success: ( res ) => {
-                response = res;
-        } };
-	    
-	    if( data !== undefined ) {
-	        option.data = JSON.stringify( data );
-	        option.headers = {
-                'Content-Type': 'application/json'
+
+/* ------------------------------------------------------------------------
+ * 受け取ったデータを整形する
+ * --------------------------------------------------------------------- */
+function format( cid: string, result: any ): ContentProperty {
+    let tmp = null;
+    if( result !== null ) {
+        tmp = {
+            cid: cid,
+            id: result.id,
+            key: result.key,
+            value: result.value,
+            version: {
+                when: result.version.when,
+                number: result.version.number
             }
-	    }
-	    await AJS.$.ajax( option );
-	    return response;
-	}
-	
+        };
+    }
+    return tmp;
+}
+
+export class ContentPropertyAPI {
+    /* ------------------------------------------------------------------------
+     * Dependency Injection
+     * --------------------------------------------------------------------- */
+    constructor( private readonly api: RestAPI ) {}
+    
 	/* ------------------------------------------------------------------------
 	 * 全てのプロパティを取得する(REST API)
 	 * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-findAll
 	 * --------------------------------------------------------------------- */
-	private async restFindAll( cid: string, param: any = {}  ) {
+	private async restFindAll( cid: string, param: any = {} ) {
 		let response;
-		const url = this.toUrl( { cid: cid }, param );
+		const req = Request.get( apiUrl( cid ) + queryToString( param ) );
 		try {
-		    response = await this.request( 'get', url );					
+		    response = await this.api.request( req );					
 		} catch( err ) {
 			if( err.status === 404 ) {
 				response = null;
@@ -131,9 +92,10 @@ export class ContentPropertyAccessor {
 	 * --------------------------------------------------------------------- */
 	private async restFindByKey( cid: string, key: string, param: any = {} ) {
         let response;
-        const url = this.toUrl( { cid: cid, key: key }, param );
+        const req = Request.get( apiUrl( cid, key ) + queryToString( param ) );
+        
         try { 
-            response = await this.request( 'get', url );
+            response = await this.api.request( req );
         } catch( err ) {
             if( err.status === 404 ) {
                 response = null;
@@ -150,8 +112,15 @@ export class ContentPropertyAccessor {
      * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-create
      * --------------------------------------------------------------------- */
 	private async restCreate( cid: string, key: string, value: any ) {
-        const url = this.toUrl( { cid: cid } );
-        let response = await this.request( 'post', url, { key: key, value: value } );
+        const req = Request.post( apiUrl( cid ) );
+        req.attatchData( { key: key, value: value } );
+
+        let response;
+        try {
+            response = await this.api.request( req );            
+        } catch ( err ) {
+            console.log( err );
+        }
         return response;
     }
     /* ------------------------------------------------------------------------
@@ -159,8 +128,9 @@ export class ContentPropertyAccessor {
      * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-update
      * --------------------------------------------------------------------- */
 	private async restUpdate( cid: string, key: string, value: any, version: number ) {
-        const url = this.toUrl( { cid: cid, key: key } );
-        let response = await this.request( 'put', url, { key: key, value: value, version: { number: version } } );
+        const req = Request.put( apiUrl( cid, key ) );
+        req.attatchData( { key: key, value: value, version: { number: version } } );
+        let response = await this.api.request( req );
         return response;
     }
     /* ------------------------------------------------------------------------
@@ -169,11 +139,12 @@ export class ContentPropertyAccessor {
      * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-delete
      * --------------------------------------------------------------------- */
 	private async restDelete( cid: string, key: string ) {
-        const url = this.toUrl( { cid: cid, key: key } );
+        const req = Request.delete( apiUrl( cid, key ) );
         try {
-            await this.request( 'delete', url );
+            let response = await this.api.request( req );
+            await this.api.request( req );
         } catch( err ) {            
-            if( err.status !== 404 ) {
+            if( err.status  == 404 ) {
                 throw new Error( err );
             }
         }
@@ -183,11 +154,12 @@ export class ContentPropertyAccessor {
      * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content-search
      * 更新日把握のため versionも取得する。もう少し拡張性のある書き方にしたい。
      * --------------------------------------------------------------------- */
-    private async restSearch( cql: string, key: string, param: any )  {
+    private async restSearch( param: any = {} )  {
         let response = null;
-        const url = this.searchUrl( param );
+        const url = '/rest/api/content/search';
+        const req = Request.get( url + queryToString( param ) );
         try {
-            response = await this.request( 'get', url )
+            response = await this.api.request( req );
         } catch( err ) {
             // invalid cql -> null. other -> err.            
             if( err.status !== 400 ) {
@@ -201,7 +173,7 @@ export class ContentPropertyAccessor {
 	 * --------------------------------------------------------------------- */
 	async getAll( cid: string, range: Range = new Range() ): Promise<ContentPropertyList> {
 		let response = await this.restFindAll( cid, { start: range.start, limit: range.limit } );
-		let list: ContentProperty[] = response.results.map( result => this.format( cid, result ) );
+		let list: ContentProperty[] = response.results.map( result => format( cid, result ) );
 		return {
 		    results: list,
             range: new Range( {
@@ -215,16 +187,19 @@ export class ContentPropertyAccessor {
     /* ------------------------------------------------------------------------
      * CQLに該当するプロパティを取得する
      * --------------------------------------------------------------------- */
-    async getByCql( cql: string, key: string, range: Range = new Range()): Promise<ContentPropertyList> {
-        let response = await this.restSearch( cql, key, { 
+    async getByCql( cql: string, key: string, range: Range = new Range() ): Promise<ContentPropertyList> {
+        let response = await this.restSearch( {
             cql: cql,
             expand: 'version,metadata.properties.' + key,
             start: range.start,
             limit: range.limit
         } );
+        
+        console.log( response );
+        
         let list: ContentProperty[] = response.results
                                               .filter( result => result.metadata.properties[ key ] !== undefined )
-                                              .map( result => this.format( result.id, result.metadata.properties[ key ] ) );
+                                              .map( result => format( result.id, result.metadata.properties[ key ] ) );
         return {
             results: list,
             range: new Range( {
@@ -241,7 +216,7 @@ export class ContentPropertyAccessor {
 	async get( cid: string, key: string ): Promise<ContentProperty> {
 		let result = await this.restFindByKey( cid, key );
 		
-		return this.format( cid, result );
+		return format( cid, result );
 	}
 	
 	/* ------------------------------------------------------------------------
@@ -251,7 +226,6 @@ export class ContentPropertyAccessor {
 	 * --------------------------------------------------------------------- */
 	async set( cid: string, key: string, value: any ): Promise<ContentProperty> {
 		const latest = await this.restFindByKey( cid, key, { expand: 'version' } );
-
 		let result;
 		if( latest !== null ) {
 			const version = 1 + latest.version.number;
@@ -259,7 +233,7 @@ export class ContentPropertyAccessor {
 		} else {
 		    result = await this.restCreate( cid, key, value );
 		}
-        return this.format( cid, result );
+        return format( cid, result );
 	}
 
     /* ------------------------------------------------------------------------
