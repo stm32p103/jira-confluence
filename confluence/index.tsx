@@ -4,6 +4,18 @@ import { testContentProperty, testRestApi, testDom, testBuildDropdown } from './
 
 import { AJSRestAPI, Request } from './lib';
 
+
+const TestInput = () => <form className="aui">
+    <div className="field-group">
+        <label htmlFor="text-input">Default field<span className="aui-icon icon-required">required</span></label>
+        <textarea className="textarea" id="text-input" name="text-input" title="Text input" onPaste={(e)=>{
+            const htmlItem = e.clipboardData.getData('text/html');
+            console.log( htmlItem )
+        }}></textarea>
+        <div className="description">Default width input of a required field</div>
+    </div>
+</form>;
+        
 AJS.$(document).ready( async () => {
     const baseUrl = AJS.params.baseUrl;
     const pageId = AJS.params.pageId;
@@ -23,6 +35,7 @@ AJS.$(document).ready( async () => {
         <div className="field-group" data-comp="dropdown"></div>
         <div className="field-group" data-comp="dropdown"></div>
         <div className="field-group" data-comp="dropdown"></div>
+        <TestInput/>
     </div>;
     
     ReactDOM.render( <App/>, container );

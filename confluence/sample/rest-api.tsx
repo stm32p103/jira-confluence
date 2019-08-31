@@ -15,4 +15,11 @@ export async function testRestApi( baseUrl: string, cid: string, key: string, cq
     console.log( '[get]' );
     let p = await api.request( req );
     console.log( p );
+
+    
+    req = Request.get( `/rest/api/content` )
+//    
+//    console.log( '[comments request]' );
+//    let req = Request.get( `/rest/api/content/${cid}?${query}` );
+//    console.log( req );
 }

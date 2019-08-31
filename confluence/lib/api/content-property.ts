@@ -38,21 +38,17 @@ function apiUrl( cid: string, key?: string ) {
 /* ------------------------------------------------------------------------
  * 受け取ったデータを整形する
  * --------------------------------------------------------------------- */
-function format( cid: string, result?: any ): ContentProperty {
-  if( result ) {
-    return {
-      cid: cid,
-      id: result.id,
-      key: result.key,
-      value: result.value,
-      version: {
-        when: result.version.when,
-        number: result.version.number
-      }
-    };
-  } else {
-    return undefined;
-  }
+function format( cid: string, result: any ): ContentProperty {
+  return {
+    cid: cid,
+    id: result.id,
+    key: result.key,
+    value: result.value,
+    version: {
+      when: result.version.when,
+      number: result.version.number
+    }
+  };
 }
 
 /* ------------------------------------------------------------------------
@@ -66,6 +62,49 @@ function rangeFromResponse( res: any ): Range {
   } );
 }
 
+/* ------------------------------------------------------------------------
+ * 例外
+ * --------------------------------------------------------------------- */
+export class BadRequestError {
+  readonly name = '[Bad Request]';
+  readonly message: string;
+  constructor( err: Error ) {
+    this.message = err.message;
+  }
+}
+
+export class NotFoundError {
+  readonly name = '[Not Found]';
+  readonly message: string;
+  constructor( err: Error ) {
+    this.message = err.message;
+  }
+}
+
+export class PermissionError implements Error {
+  readonly name = '[Permission Error]';
+  readonly message: string;
+  constructor( err: Error ) {
+    this.message = err.message;
+  }
+}
+
+export class InvalidVersionError implements Error {
+  readonly name = '[Invalid Version]';
+  readonly message: string;
+  constructor( err: Error ) {
+    this.message = err.message;
+  }
+}
+
+export class TooLongValueError implements Error {
+  readonly name = '[Invalid Version]';
+  readonly message: string;
+  constructor( err: Error ) {
+    this.message = err.message;
+  }
+}
+
 export class ContentPropertyAPI {
   constructor( private readonly api: RestAPI ) {}
     
@@ -75,15 +114,15 @@ export class ContentPropertyAPI {
 	 * --------------------------------------------------------------------- */
 	private async restFindAll( cid: string, param: any = {} ) {
 		const req = Request.get( apiUrl( cid ) + queryToString( param ) );
+		
 		try {
-		  return await this.api.request( req );
+	    return await this.api.request( req );
 		} catch( err ) {
-			if( err.status === 404 ) {
-			  return undefined;
-			} else {
-			  throw new Error( err );
-			}
-		}
+      switch( err.status ) {
+      case 404: throw new NotFoundError( err );
+      default: throw new Error( err );
+      }
+    }
 	}
 
 	/* ------------------------------------------------------------------------
@@ -92,17 +131,16 @@ export class ContentPropertyAPI {
 	 * --------------------------------------------------------------------- */
 	private async restFindByKey( cid: string, key: string, param: any = {} ) {
 	  const req = Request.get( apiUrl( cid, key ) + queryToString( param ) );
-	  try { 
-	    return await this.api.request( req );
-	  } catch( err ) {
-	    if( err.status === 404 ) {
-	      return undefined;
-	    } else {
-	      throw new Error( err );
-	    }
-	  }
-	}
-	
+
+    try {
+      return await this.api.request( req );
+    } catch( err ) {
+      switch( err.status ) {
+      case 404: throw new NotFoundError( err );
+      default: throw new Error( err );
+      }
+    }
+  }
 	/* ------------------------------------------------------------------------
 	 * key を value で新規作成する。
 	 * https://docs.atlassian.com/ConfluenceServer/rest/6.15.7/#api/content/{id}/property-create
@@ -111,11 +149,16 @@ export class ContentPropertyAPI {
 	  const req = Request.post( apiUrl( cid ) );
 	  req.attatchData( { key: key, value: value } );
 	  try {
-	    return await this.api.request( req );            
-	  } catch ( err ) {
-	    // TODO: handle 400, 403, 413, 415 error
-	    throw new Error( err );
-	  }
+	    return await this.api.request( req );	    
+	  } catch( err ) {
+      switch( err.status ) {
+      case 400: throw new BadRequestError( err );
+      case 403: throw new PermissionError( err );
+      case 409: throw new InvalidVersionError( err );
+      case 413: throw new TooLongValueError( err );
+      default: throw new Error( err );
+      }
+    }
 	}
 	/* ------------------------------------------------------------------------
 	 * key を value で更新する。バージョンは数字で指定する。(過去と同じ値だとエラー)
@@ -126,10 +169,17 @@ export class ContentPropertyAPI {
 	  req.attatchData( { key: key, value: value, version: { number: version } } );
 	  
 	  try {
-	    return await this.api.request( req );
-	  } catch( err ) {
-	    throw new Error( err );
-	  }
+	    return await this.api.request( req );	    
+	  } catch ( err ) {
+      switch( err.status ) {
+      case 400: throw new BadRequestError( err );
+      case 403: throw new PermissionError( err );
+      case 404: throw new NotFoundError( err );
+      case 409: throw new InvalidVersionError( err );
+      case 413: throw new TooLongValueError( err );
+      default: throw new Error( err );
+      }
+    }
 	}
 	/* ------------------------------------------------------------------------
 	 * keyを削除。
@@ -138,14 +188,14 @@ export class ContentPropertyAPI {
 	 * --------------------------------------------------------------------- */
 	private async restDelete( cid: string, key: string ) {
 	  const req = Request.delete( apiUrl( cid, key ) );
-	  try {
-	    let response = await this.api.request( req );
-	    await this.api.request( req );
-	  } catch( err ) {            
-	    if( err.status == 404 ) {
-	      throw new Error( err );
-	    }
-	  }
+    try {
+      await this.api.request( req );
+    } catch( err ) {
+      switch( err.status ) {
+      case 404: throw new BadRequestError( err );
+      default: throw new Error( err );
+      }
+    }
 	}
 	/* ------------------------------------------------------------------------
 	 * 検索
@@ -158,28 +208,33 @@ export class ContentPropertyAPI {
 	  try {
 	    return await this.api.request( req );
 	  } catch( err ) {
-	    // invalid cql -> null. other -> err.            
-	    if( err.status !== 400 ) {
-	      throw new Error( err );
-	    }
-	  }
+      switch( err.status ) {
+      case 400: throw new BadRequestError( err );
+      default: throw new Error( err );
+    }
+  }
 	}
 	/* ------------------------------------------------------------------------
 	 * 全てのプロパティを取得する
 	 * --------------------------------------------------------------------- */
 	async getAll( cid: string, range: Range = new Range() ): Promise<ContentPropertyList> {
-	  let response = await this.restFindAll( cid, { start: range.start, limit: range.limit } );
-	  let list = response.results.map( result => format( cid, result ) );
-	  
-	  if( list == undefined ) {
-	    list = [];
-	  }
-	  
-	  return {
-	    results: list,
-	    range: rangeFromResponse( response )
-	  };
-	} 
+	  let response;
+	  try {
+	    response = await this.restFindAll( cid, { start: range.start, limit: range.limit } );
+    } catch( err ) {
+      // 404: return undefined
+      if( !( err instanceof NotFoundError ) ) {
+        throw err;
+      }
+    };
+    
+    const results = response.results.map( result => format( cid, result ) );
+    const resultRange = rangeFromResponse( response );
+    return {
+      results: results,
+      range: rangeFromResponse( resultRange )
+	  } 
+	}
 
   /** ---------------------------------------------------------------------
    * @param cql CQL文字列。例えば 'SPACE=TEST'。
@@ -212,26 +267,62 @@ export class ContentPropertyAPI {
 	 * key の値を取得する。
 	 * --------------------------------------------------------------------- */
 	async get( cid: string, key: string ): Promise<ContentProperty> {
-		let result = await this.restFindByKey( cid, key );
-		
-		return format( cid, result );
-	}
-	
-	/* ------------------------------------------------------------------------
-	 * key が存在していなかったら新規作成、存在していたらバージョンを1つ挙げて更新する。
-	 * リクエストが1回余計に必要なのは、例えば投機的にUpdateしてNGならCreateするよう改善する。
-	 * Updateをするために、newVersionを使うため予約するが、今は使わない
-	 * --------------------------------------------------------------------- */
-	async set( cid: string, key: string, value: any ): Promise<ContentProperty> {
-		const latest = await this.restFindByKey( cid, key, { expand: 'version' } );
 		let result;
-		if( latest !== null ) {
-			const version = 1 + latest.version.number;
-			result = await this.restUpdate( cid, key, value, version );
-		} else {
-		    result = await this.restCreate( cid, key, value );
+		
+		try {
+		  result = await this.restFindByKey( cid, key );
+		} catch( err ) {
+		  if( !( err instanceof NotFoundError ) ) {
+		    throw err;
+		  }
 		}
-        return format( cid, result );
+
+		if( result ) {
+	    return format( cid, result );		  
+		}
+	}
+
+  /* ------------------------------------------------------------------------
+   * 1. 存在の有無にかかわらず、新規作成を試みる。
+   *      400 errorの場合、既に存在する可能性があるので、2以降を試す。
+   * 2. 既に存在していたら、指定されたバージョンで更新する。この際、バージョンが妥当でなければ例外を投げる。
+   * 3. 既に存在していて、バージョンの指定が無ければ、最新バージョンを取得してから更新する。
+   *    他のユーザが既に更新していた場合、その内容は失われる。
+   *    最新バージョンが取得できない場合、他のユーザが消したかもしれないので、再度新規作成を試みる。
+   * --------------------------------------------------------------------- */
+	async set( cid: string, key: string, value: any, option?: { version: number } ): Promise<ContentProperty> {	  
+    let response;
+
+    // try create
+    try {
+	    response = await this.restCreate( cid, key, value );
+	  } catch( err ) {
+	    if( err instanceof InvalidVersionError ) {
+	      console.info( `cid: ${cid}, key: ${key} seems to exist.` );
+	    } else {
+	      throw err;
+	    }
+	  }
+	  
+	  if( response ) {
+	    return format( cid, response );	    
+	  }
+	  
+	  // version
+	  let version: number;
+    if( option ) {                            
+      version = option.version;
+	  } else {
+	   /* --------------------------------------------------------------------
+	    * 既にContent Propertyがあると判定した直後に他のユーザが削除した場合、
+	    * ここでバージョンが取得でき図に例外が発生する。
+	    * ----------------------------------------------------------------- */
+	    const latest = await this.restFindByKey( cid, key, { expand: 'version' } );
+      version = 1 + latest.version.number;	  
+    }
+
+    let updateRes = await this.restUpdate( cid, key, value, version );
+    return format( cid, updateRes );
 	}
 
 	/* ------------------------------------------------------------------------
@@ -239,7 +330,13 @@ export class ContentPropertyAPI {
 	 * 一括削除はAPIが無いため、負荷を抑えるために1つずつ削除する。
 	 * --------------------------------------------------------------------- */
 	async delete( cid: string, key: string ) {
-	  await this.restDelete( cid, key );
+	  try {
+	    await this.restDelete( cid, key );
+	  } catch( err ) {
+	    if( !( err instanceof NotFoundError ) ) {
+	      throw err;
+	    }
+	  }
 	}
 }
 
