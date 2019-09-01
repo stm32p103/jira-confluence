@@ -1,22 +1,33 @@
 import * as React from "react";
-import { ContentPropertyAPI, AJSRestAPI } from '../lib';
+import { Serializer } from '../lib/storage';
 import { Dropdown, UIBuilder, Item } from '../lib/components';
 
-export async function testBuildDropdown() {
-    const builder = new UIBuilder();
-    builder.addRenderer( 'dropdown', ( elem, sch ) => {
-        const id = elem.getAttribute('id');
-        const item = sch.data as Item[];
-        return <Dropdown items={item} id={id}/>
-    } );
+const dropdownItems: { [ selection: string ]: Item[] } = {
+    'SelA': [ 
+      { value: '1', label: 'A-1' },
+      { value: '2', label: 'A-2' },
+      { value: '3', label: 'A-3' }
+    ], 
+    'SelB': [ 
+      { value: '1', label: 'B-1' },
+      { value: '2', label: 'B-2' }
+    ]
+}
 
-    const items: Item[] = [ 
-        { value: '1', label: 'Test 1' },
-        { value: '2', label: 'Test 2' },
-        { value: '3', label: 'Test 3' },
-        { value: '4', label: 'Test 4' },
-        { value: '5', label: 'Test 5' }
-    ];
-    builder.addSchema( '[data-comp="dropdown"]', { type: 'dropdown', data: items } );
-    builder.render();
+export async function testBuildDropdown( serializer: Serializer, baseUrl: string, pageId: string, key: string ) {
+  const builder = new UIBuilder();
+  builder.addRenderer( 'dropdown', ( elem, sch ) => {
+    const id = elem.getAttribute('id');
+    const item = sch.data as Item[];
+    return <Dropdown id={id} 
+                     items={sch.data}
+                     serializer={serializer}
+                     setter={ data => data.v }
+                     getter={ value => { return { v: value, s: elem.getAttribute('selection') } } }></Dropdown>
+  } );
+
+  Object.keys( dropdownItems ).forEach( key => {
+    builder.addSchema( `dropdown[selection="${key}"]`, { type: 'dropdown', data: dropdownItems[key] } );    
+  } );
+  builder.render();
 }

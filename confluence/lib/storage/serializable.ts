@@ -3,8 +3,8 @@ import { KVStorage } from './kv-storage';
  * 値を保存する要素のインターフェース
  * ------------------------------------------------------------------------- */
 export interface Serializable {
-  setValue( data: any );
-  getValue(): any;
+  set( data: any );
+  get(): any;
 }
 
 /* ----------------------------------------------------------------------------
@@ -27,7 +27,8 @@ export class Serializer {
     let kv: { [key: string ]: any } = {};
     
     Object.keys( this.serializables )
-    .forEach( key => kv[ key ] = this.serializables[key].getValue() );
+    .forEach( key => kv[ key ] = this.serializables[key].get() );
+    console.log( kv )
     
     await this.storage.save( kv );
   }
@@ -35,12 +36,13 @@ export class Serializer {
   async deserialize() {
     const kv = await this.storage.load();
     
+    console.log( kv )
     Object.keys( kv )
     .forEach( key => {
       const value = kv[ key ];
       const serializer = this.serializables[ key ];
       if( serializer ) {
-        serializer.setValue( value );
+        serializer.set( value );
       }
     } );
   }

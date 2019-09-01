@@ -1,6 +1,6 @@
 import { ContentPropertyAPI, AJSRestAPI, InvalidVersionError } from '../lib';
 
-export async function testContentProperty( baseUrl: string, cid: string, key: string, cql: string ) {
+export async function testContentProperty( baseUrl: string, cid: string, key: string) {
     const api = new ContentPropertyAPI( new AJSRestAPI( baseUrl ) );
 
     let p;
@@ -39,12 +39,24 @@ export async function testContentProperty( baseUrl: string, cid: string, key: st
       }
     }
 
-    console.log( '[getByCql]' );
-    let x = await api.getByCql( cql, key );
-    console.log( x );
-    
     console.log( '[delete] start' );
     await api.delete( cid, key );
     console.log( '[delete] done' );
-
 }
+
+
+
+export async function testContentPropertyCql( baseUrl: string, cql: string, key: string ) {
+  const api = new ContentPropertyAPI( new AJSRestAPI( baseUrl ) );
+  
+  console.log( '[getByCql]' );
+  let x = await api.getByCql( cql, key );
+  console.log( x );
+}
+
+
+
+
+
+
+

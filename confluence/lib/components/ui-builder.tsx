@@ -36,7 +36,7 @@ export class UIBuilder {
             for( let i=0; i<targets.length; i++ ) {
                 const target = targets.item(i);
                 const schema = this.schema[ selector ];
-                const render = this.renderer[schema.type ];
+                const render = this.renderer[ schema.type ];
                 ReactDOM.render( render( target, schema ), target ); 
             }
         }
