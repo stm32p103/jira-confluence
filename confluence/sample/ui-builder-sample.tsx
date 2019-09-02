@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Serializer } from '../lib/storage';
-import { Dropdown, UIBuilder, Item } from '../lib/components';
+import { SerializableDropdown, UIBuilder, Item } from '../lib/components';
 
 const dropdownItems: { [ selection: string ]: Item[] } = {
     'SelA': [ 
@@ -19,11 +19,11 @@ export async function testBuildDropdown( serializer: Serializer, baseUrl: string
   builder.addRenderer( 'dropdown', ( elem, sch ) => {
     const id = elem.getAttribute('id');
     const item = sch.data as Item[];
-    return <Dropdown id={id} 
+    return <SerializableDropdown id={id}
                      items={sch.data}
                      serializer={serializer}
                      setter={ data => data.v }
-                     getter={ value => { return { v: value, s: elem.getAttribute('selection') } } }></Dropdown>
+                     getter={ value => { return { v: value, s: elem.getAttribute('selection') } } }></SerializableDropdown>
   } );
 
   Object.keys( dropdownItems ).forEach( key => {
