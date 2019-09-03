@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Serializer } from '../lib/storage';
-import { SerializableDropdown, UIBuilder, Item } from '../lib/components';
+import { Serializer } from '@this/lib';
+import { SerializableDropdown, UIBuilder, Item } from '@this/components';
 
 const dropdownItems: { [ selection: string ]: Item[] } = {
     'SelA': [ 

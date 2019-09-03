@@ -1,6 +1,6 @@
 import * as ReactDOM from 'react-dom';
 import React from 'react';
-import * as DOM from '../lib/dom';
+import * as DOM from '@this/common';
 
 export interface Item {
     label: string;

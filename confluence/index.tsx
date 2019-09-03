@@ -2,10 +2,9 @@ import React from 'react';
 import * as ReactDOM from "react-dom";
 import { testContentProperty, testRestApi, testDom, testBuildDropdown, testContentPropertyCql } from './sample';
 
-import { AJSRestAPI, Request } from './lib';
+import { AJSRestAPI, Request } from '@this/common';
 import { ContentPropertyAPI } from './lib/api';
-import { Serializer, ContentPropertyStorage } from './lib/storage';
-import { TextInput } from './lib/components';
+import { Serializer, ContentPropertyStorage } from '@this/lib';
 
 AJS.$(document).ready( async () => {
   console.log( AJS.params );

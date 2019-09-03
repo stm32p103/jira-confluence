@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Serializable, Serializer } from '../storage';
+import { Serializable, Serializer } from '@this/lib';
 
 /* ----------------------------------------------------------------------------
  * getter: ストレージから

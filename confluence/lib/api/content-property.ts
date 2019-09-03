@@ -1,5 +1,5 @@
 import { Range } from './range';
-import { RestAPI, Request, queryToString } from '../request';
+import { RestAPI, Request, queryToString } from '@this/common';
 
 /* ------------------------------------------------------------------------
  * Content Property

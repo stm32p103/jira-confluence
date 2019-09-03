@@ -1,4 +1,4 @@
-import { AJSRestAPI, Request, queryToString } from '../lib';
+import { AJSRestAPI, Request, queryToString } from '@this/common';
 
 export async function testRestApi( baseUrl: string, cid: string, key: string, cql: string ) {
     const api = new AJSRestAPI( baseUrl );

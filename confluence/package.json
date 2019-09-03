@@ -27,6 +27,9 @@
     "webpack-cli": "^3.3.6"
   },
   "dependencies": {
+    "@this/common": "file:common",
+    "@this/components": "file:components",
+    "@this/lib": "file:lib",
     "jquery": "^3.4.1",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",

@@ -1,4 +1,5 @@
-import { ContentPropertyAPI, AJSRestAPI, InvalidVersionError } from '../lib';
+import { ContentPropertyAPI, InvalidVersionError } from '@this/lib';
+import { AJSRestAPI } from '@this/common';
 
 export async function testContentProperty( baseUrl: string, cid: string, key: string) {
     const api = new ContentPropertyAPI( new AJSRestAPI( baseUrl ) );

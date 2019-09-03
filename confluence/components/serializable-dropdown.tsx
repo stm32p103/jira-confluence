@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Serializable, Serializer } from '../storage';
+import { Serializable, Serializer } from '@this/lib';
 import { Dropdown, Item } from './dropdown';
 import { SerializableUI } from './serializable';
 
@@ -19,6 +19,7 @@ export interface State {
 }
 /* ----------------------------------------------------------------------------
  * DropdownItemの情報をもとに、ドロップダウンを作る
+ * なんだか無駄が多い
  * ------------------------------------------------------------------------- */
 export class SerializableDropdown extends React.Component<Props,State> {
   state: State;
