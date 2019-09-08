@@ -21,33 +21,8 @@ interface Props {
 }
 
 /* ----------------------------------------------------------------------------
- * valueはStateではないためプロパティに移動
- * (inputも値はプロパティ)
+ * たったこれだけだった.
+ * auiの見た目に併せたければ <form class="aui">の下に置く必要がある。
  * ------------------------------------------------------------------------- */
-interface State {}
-
-/* ----------------------------------------------------------------------------
- * DropdownItemの情報をもとに、ドロップダウンを作る
- * ------------------------------------------------------------------------- */
-export class Dropdown extends React.Component<Props,State> {
-  state: State;
-  constructor( public props: Props ) {
-    super( props );
-  }
-
-  /* --------------------------------------------------------------------------
-   * 選択肢の生成
-   * ----------------------------------------------------------------------- */
-  private options() {
-    return this.props.items.map( ( item, index ) => <option value={item.value} key={item.value}>{item.label}</option> );
-  }
-  
-  render() {
-    return <form className="aui">
-           <select className="select"
-                   value={ this.props.value }
-                   onChange={ (e)=> { this.props.onChange( e.target.value ) } }>{ this.options() }</select>
-           </form>
-  }
-}
-
+const Options = ( props: { items: Item[] } ) => <>{ props.items.map( item => <option value={item.value} key={item.value}>{item.label}</option> ) }</>;
+export const Dropdown = ( props: Props ) => <select className="select" value={ props.value } onChange={ (e)=> { props.onChange( e.target.value ) } }><Options items={props.items} /></select>;
