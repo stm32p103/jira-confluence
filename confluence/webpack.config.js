@@ -22,7 +22,7 @@ module.exports = {
 	},
 	externals: [
 		{
-			'jquery': true
+//      'jquery': true
 		}
 	]
 };
