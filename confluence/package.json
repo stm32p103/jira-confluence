@@ -27,10 +27,12 @@
     "webpack-cli": "^3.3.6"
   },
   "dependencies": {
+    "@material-ui/core": "^4.4.2",
+    "@material-ui/icons": "^4.4.1",
     "@this/common": "file:common",
     "@this/components": "file:components",
     "@this/lib": "file:lib",
-    "jquery": "^3.4.1",
+    "classnames": "^2.2.6",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "rxjs": "^6.5.2"

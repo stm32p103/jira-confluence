@@ -1,6 +1,6 @@
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
-	mode: "production",
+	mode: "development",
 	entry: "./index.tsx",
 	output: {
 		filename: "index.js"
