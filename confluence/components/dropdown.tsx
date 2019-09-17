@@ -16,7 +16,7 @@ export interface Item {
  * ------------------------------------------------------------------------- */
 interface Props {
   items: Item[];
-  value: string;
+  value?: string;
   onChange?: ( value: string ) => void;
 }
 

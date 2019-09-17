@@ -6,16 +6,23 @@ import { PropTable, PropData } from './property-table';
 import { ContentPropertyAPI, ContentProperty, Range, InvalidVersionError, ContentPropertyList } from '@this/lib/api';
 
 // material-ui
-import { Table, TableBody, TableCell, TableHead, TableRow } from '@material-ui/core'
+import { Table, TableBody, TableCell, TableHead, TableRow, Button } from '@material-ui/core'
 import { Paper } from '@material-ui/core'
 import { Checkbox } from '@material-ui/core'
+
+
+import { UIBuilder, UISchema, Dropdown, Item } from '@this/components';
+
+import { DropdownController } from './dropdown-controller';
 
 
 export class Controller {
   // current
   range: Range = new Range();
-  
-  constructor( private api: ContentPropertyAPI ) {}
+  dropdowns: DropdownController;
+  constructor( private api: ContentPropertyAPI ) {
+    this.dropdowns = new DropdownController( this.api );
+  }
 
   async load( cid: string ) {
     return await this.api.getAll( cid );
@@ -27,7 +34,13 @@ export class Controller {
     await this.api.set( cid, key, data );
   }
   
+  async loadSelection( cid: string ) {
+    await this.dropdowns.loadSelection( cid );
+  }
   
+  build() {
+    this.dropdowns.build();
+  }
 }
 
 
@@ -62,7 +75,9 @@ export class AppView extends React.Component<Props, State>{
     try {
       await this.props.controller.save( this.props.cid, this.state.key, this.state.value );      
     } catch( err ) {
-      console.log( 'already exists' );
+      if( !( err instanceof InvalidVersionError ) ) {
+        console.log( err );
+      }
     }
     
     await this.load();
@@ -119,6 +134,8 @@ export class AppView extends React.Component<Props, State>{
   render() {
     return <div>
       <Paper>
+        <Button variant="contained" onClick={ () => this.props.controller.loadSelection( AJS.params.pageId ) } >Load Selection</Button>
+        <Button variant="contained" onClick={ () => this.props.controller.build()} >Build Dropdown</Button>
         <ControlComponent save={()=>this.save()} load={()=>this.load()} toggle={()=>this.toggleEditable()} editable={this.state.editable}  />
         <NewPropertyComponent 
           propKey={this.state.key}
@@ -133,11 +150,5 @@ export class AppView extends React.Component<Props, State>{
   }
 }
 
-/*
-ユーザがCPをクリックすると、エディタ画面に表示される
-ユーザがToggleを押すと、反転する
- */
 
-/* ユーザがCPをクリックすると、エディタ画面に表示される */
-
-/* ユーザがCPをクリックすると、エディタ画面に表示される */
+///[ { "label": "k", "value": "k"  }, { "label": "s", "value": "kk"  }, { "label": "a", "value": "kkk"  } ]

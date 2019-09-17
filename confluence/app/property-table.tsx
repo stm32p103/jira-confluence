@@ -32,7 +32,7 @@ const PropBodyRow = ( cp: PropData ) => <TableRow key={cp.key}>
   </TableRow>
   
 // table
-export const PropTable = ( props: { cps: PropData[] } ) =><Table>
+export const PropTable = ( props: { cps: PropData[] } ) =><Table size="small">
   <TableHead><PropHeaderRow/></TableHead>
   <TableBody>{ props.cps.map( cp => <PropBodyRow {...cp} /> )}</TableBody>
 </Table>;
