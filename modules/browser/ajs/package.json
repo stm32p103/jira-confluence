@@ -1,0 +1,9 @@
+{
+  "name": "@this/ajs",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.ts",
+  "author": "me",
+  "license": "MIT",
+  "private": true
+}
