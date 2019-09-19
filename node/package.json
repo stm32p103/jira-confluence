@@ -1,0 +1,24 @@
+{
+  "name": "@this/node",
+  "version": "1.0.0",
+  "description": "lib",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^12.7.5",
+    "@types/typescript": "^2.0.0",
+    "typescript": "^3.6.3",
+    "ts-loader": "^6.0.4",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "webpack": "^4.39.1",
+    "webpack-cli": "^3.3.6"
+  },
+  "dependencies": {
+    "@this/common": "file:../modules/common",
+    "@this/node": "file:../modules/node"
+  }
+}
