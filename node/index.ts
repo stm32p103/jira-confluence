@@ -11,7 +11,7 @@ const api = new ContentPropertyAPI( new NodeRestAPI( { baseUrl: 'http://localhos
 
 async function test() {
   try{    
-    const result = await api.getAll( 'pageId' );
+    const result = await api.getAll( pageId );
   console.log( result );  
   } catch( err ) {
     console.log( err );
