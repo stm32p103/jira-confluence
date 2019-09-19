@@ -1,5 +1,12 @@
 import { RestAPI, Request } from '@this/common';
-import { AJS } from './ajs';
+
+/* ############################################################################
+ * ConfluenceのAJSが使えるようになるおまじない
+ * ######################################################################### */
+declare const AJS: {
+    $: JQueryStatic;
+    params: { [key:string]: string };
+}
 
 export class AJSRestAPI {
   constructor( private base: string ) {}

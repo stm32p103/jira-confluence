@@ -1,5 +1,5 @@
 {
-  "name": "@this/browser",
+  "name": "@this/web",
   "version": "0.0.0",
   "description": "",
   "main": "index.ts",
@@ -7,11 +7,11 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "@types/typescript": "^2.0.0",
-    "@types/jquery": "^3.3.31",
     "typescript": "^3.6.3"
   },
   "dependencies": {
+    "@types/typescript": "^2.0.0",
+    "@types/jquery": "^3.3.31",
     "@this/common": "file:../common"
   }
 }
