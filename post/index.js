@@ -118,7 +118,22 @@ async function update( base, pid, content ) {
 }
 
 function template( content ) {
-	return `<p class=\"auto-cursor-target\"><br /></p><ac:structured-macro ac:name=\"html\" ac:schema-version=\"1\"><ac:plain-text-body><![CDATA[<div id="app"></div><script type="text/javascript">${content}</script>]]></ac:plain-text-body></ac:structured-macro><p class=\"auto-cursor-target\"><br /></p>`;
+	return `<p class=\"auto-cursor-target\"><br /></p><ac:structured-macro ac:name=\"html\" ac:schema-version=\"1\"><ac:plain-text-body><![CDATA[
+  <dropdown option="sample"></dropdown>
+  <dropdown option="sample"></dropdown>
+  <dropdown option="sample"></dropdown>
+  <dropdown option="sample"></dropdown>
+  <dropdown option="sample"></dropdown>
+  <dropdown option="sample"></dropdown>
+  <div id="app"></div>
+	<!-- Dropdown -->
+	<div class="field-group"><dropdown selection="SelA" id="111"></dropdown></div>
+	<div class="field-group"><dropdown selection="SelA" id="222"></dropdown></div>
+	<div class="field-group"><dropdown selection="SelB" id="333"></dropdown></div>
+	<div class="field-group"><dropdown selection="SelB" id="444"></dropdown></div>
+	<!-- Dropdown -->
+  <div id="target">target</div>
+	<script type="text/javascript">${content}</script>]]></ac:plain-text-body></ac:structured-macro><p class=\"auto-cursor-target\"><br /></p>`;
 }
 
 
