@@ -1,17 +1,17 @@
 import { ContentPropertyAPI } from '@this/common';
 import { NodeRestAPI } from '@this/node'
 
-//5963777
+const pageId = '';
 const auth = {
-    "user": "cadmin",
-    "pass": "IY84hPuczx&#J*!Y3=w1+M@Y9Ku%7!6TyR+YE$o4TQpKlKF6GH"
+    "user": "",
+    "pass": ""
 }
 
 const api = new ContentPropertyAPI( new NodeRestAPI( { baseUrl: 'http://localhost:8090', auth: auth } ) );
 
 async function test() {
   try{    
-    const result = await api.getAll( '6422536' );
+    const result = await api.getAll( 'pageId' );
   console.log( result );  
   } catch( err ) {
     console.log( err );
