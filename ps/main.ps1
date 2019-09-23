@@ -10,8 +10,14 @@
 #------------------------------------------------------------------------------
 $xmlPath = '.\setting.xml'
 $key = 'schedule'
+
+# 更新周期(分)
 $minInterval = 5
 $maxInterval = 60*24
+
+# 当日を起点に何日分の情報を集めるか
+$minPeriod = 5
+$maxPeriod = 60
 
 #------------------------------------------------------------------------------
 # 設定をロード
@@ -22,14 +28,21 @@ if( Test-Path $xmlPath ) {
     $cid = $xml.config.cid
 
     # 上下限を制限(分)
-    $tmpInterval = [int]$xml.config.interval
+    $tmpInterval = [int]$xml.config.updateIntervalMinutes
     $tmpInterval = ( $tmpInterval, $minInterval | Measure -Maximum ).Maximum
     $tmpInterval = ( $tmpInterval, $maxInterval | Measure -Minimum ).Minimum
-
-    # msに変換
     $interval = 60 * 1000 * $tmpInterval
 
+    # 上下限を制限(分)
+    $tmpPeriod = [int]$xml.config.period
+    $tmpPeriod = ( $tmpPeriod, $minPeriod | Measure -Maximum ).Maximum
+    $tmpPeriod = ( $tmpPeriod, $maxPeriod | Measure -Minimum ).Minimum
+    $period = $tmpPeriod
+    
+    # パラメータ表示
     '更新間隔: {0}分' -f $tmpInterval | Write-Host
+    '抽出期間: {0}日' -f $tmpPeriod   | Write-Host
+
 } else {
     echo "Cannot read setting.xml"
     exit
@@ -45,14 +58,18 @@ $url = Get-PropertyUrl -Base $base -Cid $Cid -Key $key
 # ログイン情報を入力
 #------------------------------------------------------------------------------
 $cred = Get-Credential -Message　'Confluenceのログイン情報を入力'
+if( $cred -eq $NULL ) {
+    Write-Host '[info] キャンセル'
+    exit
+}
 
 #------------------------------------------------------------------------------
 # 周期処理とそのコールバック
 #------------------------------------------------------------------------------
 function OnStart( $notify ){
+    Write-Host '[info] 開始'
+    Write-Host '[info] 既存のContent-Propertyを削除...'
     try {
-        Write-Host '[info] 開始'
-        Write-Host '[info] 既存のContent-Propertyを削除...'
         $res = Delete-Property -Base $base -Cid $cid -Key $key -Credential $cred
     } catch {
         $statusCode = $_.Exception.Response.StatusCode
@@ -73,7 +90,12 @@ function OnStart( $notify ){
 }
 #------------------------------------------------------------------------------
 function OnTimeout( $notify ){
-    $entries = getCalendarEntries
+    # きりが良くなるよう、当日の0:00起点に指定された期間の予定を集める
+    $start = ( Get-Date ).Date
+    $end = $start.AddDays( $period )
+    $filter = createFilter -Start $start -End $end
+    $entries = getCalendarEntries -Filter $filter
+
     try {
         ForceUpdate-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $entries
     } catch {
@@ -84,10 +106,10 @@ function OnTimeout( $notify ){
     　　$notify.ShowBalloonTip(3000)
         throw $_
     }
-
+    
+    # 更新日をツールチップに表示
     $datetime = (Get-Date).ToString("yyyy/MM/dd HH:mm")
     $message = "Last updated: {0}" -f $datetime
-    # ツールチップに登録
     $notify.Text = $message
 }
 
@@ -105,4 +127,3 @@ $backgroundTaskCallbacks = @{
 # バックグラウンドタスク起動
 #------------------------------------------------------------------------------
 startBackgroundTask -Name 'CalendarScraper' -Interval $interval -Callbacks $backgroundTaskCallbacks
-

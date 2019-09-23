@@ -80,7 +80,7 @@ function startBackgroundTask {
         # 停止
         #----------------------------------------------------------------------
         # 周期処理終了後のコールバック
-        $Callbacks[ 'OnFinish' ].Invoke();
+        $Callbacks[ 'OnStop' ].Invoke();
 
 
         $timer.Stop()

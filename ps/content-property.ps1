@@ -9,10 +9,13 @@ function Append-AuthHeader {
     )
     $username = $Credential.UserName
     $password = $Credential.GetNetworkCredential().Password
-    
     $auth = '{0}:{1}' -f $username, $password
+
+    # Ascii -> Base64
     $bytes  = [System.Text.Encoding]::Ascii.GetBytes($auth)
     $base64 = [Convert]::ToBase64String($bytes)
+    
+    # Auth Header
     $Header.Add( 'Authorization', 'Basic ' + $base64 )
 }
 
@@ -32,6 +35,7 @@ function Get-PropertyUrl {
 
 #------------------------------------------------------------------------------
 # Contenet Property REST API
+# HTTPリクエストを発行する部分(共通)
 #------------------------------------------------------------------------------
 function Request-Property {
     param(
