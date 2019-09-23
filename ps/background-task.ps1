@@ -31,16 +31,6 @@ function startBackgroundTask {
         $notify_icon.Icon = $icon
         $notify_icon.Visible = $true
 
-        # アイコンクリック時のイベント
-        $notify_icon.add_Click({
-            if ($_.Button -eq [Windows.Forms.MouseButtons]::Left) {
-                # タイマーで実装されているイベントを即時実行する
-                $timer.Stop()
-                $timer.Interval = 1
-                $timer.Start()
-            }
-        })
-
         # メニュー
         $menu_item_exit = New-Object System.Windows.Forms.MenuItem
         $menu_item_exit.Text = "終了"
