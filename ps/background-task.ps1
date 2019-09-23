@@ -9,8 +9,6 @@ function startBackgroundTask {
         [parameter(mandatory)][string]$Name,
         [parameter(mandatory)][hashtable]$Callbacks
     )
-    # 起動
-    $Callbacks[ 'OnStarted' ].Invoke();
     
     # 多重起動チェック
     $mutex = New-Object System.Threading.Mutex($false, $Name)
@@ -60,9 +58,9 @@ function startBackgroundTask {
             $timer.Stop()
 
             try{
-                $Callbacks[ 'OnProgress' ].Invoke( $notify_icon );
+                $Callbacks[ 'OnTimeout' ].Invoke( $notify_icon );
             } catch {
-                # Catch去れない例外があれば終了する。
+                # Catchできない例外があれば終了する。
                 Write-Host '[error] Unhandled exception. Exit.'
                 Write-Host $_
                 $application_context.ExitThread()
@@ -76,6 +74,14 @@ function startBackgroundTask {
         #----------------------------------------------------------------------
         # 起動
         #----------------------------------------------------------------------
+        try {
+            $Callbacks[ 'OnStart' ].Invoke();
+        } catch {
+            Write-Host "[error] 開始時処理失敗のため終了。"
+            Write-Host $_
+            exit
+        }
+
         $timer.Interval = 1
         $timer.Start()
         [void][System.Windows.Forms.Application]::Run( $application_context )
@@ -83,15 +89,16 @@ function startBackgroundTask {
         #----------------------------------------------------------------------
         # 停止
         #----------------------------------------------------------------------
+        # 周期処理終了後のコールバック
+        $Callbacks[ 'OnFinish' ].Invoke();
+
+
         $timer.Stop()
         $notify_icon.Visible = $false
         $mutex.ReleaseMutex()
+    } else {
+        Write-Host '[info] 起動済みのため終了。'
     }
     $mutex.Close()
     
-    #----------------------------------------------------------------------
-    # 終了
-    #----------------------------------------------------------------------
-    # 周期処理終了後のコールバック
-    $Callbacks[ 'OnFinished' ].Invoke();
 }

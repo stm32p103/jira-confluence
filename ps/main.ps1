@@ -13,8 +13,6 @@ $key = 'schedule'
 $minInterval = 5
 $maxInterval = 60*24
 
-
-
 #------------------------------------------------------------------------------
 # 設定をロード
 #------------------------------------------------------------------------------
@@ -51,7 +49,30 @@ $cred = Get-Credential -Message　'Confluenceのログイン情報を入力'
 #------------------------------------------------------------------------------
 # 周期処理とそのコールバック
 #------------------------------------------------------------------------------
-function timer_function($notify){
+function OnStart( $notify ){
+    try {
+        Write-Host '[info] 開始'
+        Write-Host '[info] 既存のContent-Propertyを削除...'
+        $res = Delete-Property -Base $base -Cid $cid -Key $key -Credential $cred
+    } catch {
+        $statusCode = $_.Exception.Response.StatusCode
+        # プロパティが作れないとしたら、設定ミスなので続行不可
+        if( $statusCode -eq 'Unauthorized' ) {
+            # 権限ない場合は続行不可
+            Write-Host "[error] ユーザ名またはパスワードが不一致。"
+            throw $_
+        }elseif( $statusCode -eq 'Forbidden' ) {
+            # 存在しないだけかもしれないため、続行可能。
+            Write-Host "[info] 指令されたContentは削除済みか存在しない。"
+        } else {
+            # URL間違いもここに分類される。
+            Write-Host "[error] 未分類のエラー。"
+            throw $_
+        }
+    }
+}
+#------------------------------------------------------------------------------
+function OnTimeout( $notify ){
     $entries = getCalendarEntries
     try {
         ForceUpdate-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $entries
@@ -68,41 +89,16 @@ function timer_function($notify){
     $message = "Last updated: {0}" -f $datetime
     # ツールチップに登録
     $notify.Text = $message
+}
 
-    # バルーンで表示
-    #　$notify.BalloonTipIcon = 'Info'
-    #　$notify.BalloonTipText = $message
-    #　$notify.BalloonTipTitle = 'Outlook Schedule Uploader'
-    #　$notify.ShowBalloonTip(1000)
+function OnStop() {
+    write-host "[info] 停止"
 }
 
 $backgroundTaskCallbacks = @{
-    "OnStarted"  = { write-host "[info] Started" }
-    "OnProgress" = { timer_function $args[0] }
-    "OnFinished" = { write-host "[info] Stopped" }
-}
-
-#------------------------------------------------------------------------------
-# 起動前の準備(古いContent-Propertyを削除)
-#------------------------------------------------------------------------------
-try {
-    Write-Host '[info] 既存のContent-Propertyを削除...'
-    $res = Delete-Property -Base $base -Cid $cid -Key $key -Credential $cred
-} catch {
-    $statusCode = $_.Exception.Response.StatusCode
-    # プロパティが作れないとしたら、設定ミスなので続行不可
-    if( $statusCode -eq 'Unauthorized' ) {
-        # 権限ない場合は続行不可
-        Write-Host "[error] ユーザ名またはパスワードが不一致。"
-        throw $_
-    }elseif( $statusCode -eq 'Forbidden' ) {
-        # 存在しないだけかもしれないため、続行可能。
-        Write-Host "[info] 指令されたContentは削除済みか存在しない。"
-    } else {
-        # URL間違いもここに分類される。
-        Write-Host "[error] 未分類のエラー。"
-        throw $_
-    }
+    "OnStart"   = { OnStart }
+    "OnTimeout" = { OnTimeout $args[0] }
+    "OnStop"    = { OnStop }
 }
 
 #------------------------------------------------------------------------------
