@@ -120,7 +120,7 @@ function Delete-Property {
     )
   
     $url = Get-PropertyUrl -Base $Base -Cid $Cid -Key $Key
-    $res = Request-Property -Url $url -Metho DELET -Credential $Credential
+    $res = Request-Property -Url $url -Metho DELETE -Credential $Credential
     return $res  
 }
 #------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ function ForceUpdate-Property {
             Write-Host "[error] ユーザ名またはパスワードが不一致。"
             throw $_
         } elseif( $statusCode -eq 'NotFound' ) {
-            # 見つからない場合は新規作成できるかもしれないため、継続する
+            # 見つからない場合は新規作成できるかもしれないため、続行可能。
             Write-Host "[info] Content PropertyまたはContentが存在しない。"
         } else {
             # URL間違いもここに分類される
