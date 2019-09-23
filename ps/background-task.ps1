@@ -9,10 +9,11 @@ function startBackgroundTask {
         [parameter(mandatory)][string]$Name,
         [parameter(mandatory)][hashtable]$Callbacks
     )
-
-    $mutex = New-Object System.Threading.Mutex($false, $Name)
+    # 起動
+    $Callbacks[ 'OnStarted' ].Invoke();
     
     # 多重起動チェック
+    $mutex = New-Object System.Threading.Mutex($false, $Name)
     if ($mutex.WaitOne(0, $false)){
         #----------------------------------------------------------------------
         # Form構築
@@ -77,22 +78,20 @@ function startBackgroundTask {
         #----------------------------------------------------------------------
         $timer.Interval = 1
         $timer.Start()
-        
-        # 周期処理起動後のコールバック
-        $Callbacks[ 'OnStarted' ].Invoke();
-
-        # 周期処理スタート
         [void][System.Windows.Forms.Application]::Run( $application_context )
         
         #----------------------------------------------------------------------
-        # 終了
+        # 停止
         #----------------------------------------------------------------------
-        # 周期処理終了後のコールバック
-        $Callbacks[ 'OnFinished' ].Invoke();
-
         $timer.Stop()
         $notify_icon.Visible = $false
         $mutex.ReleaseMutex()
     }
     $mutex.Close()
+    
+    #----------------------------------------------------------------------
+    # 終了
+    #----------------------------------------------------------------------
+    # 周期処理終了後のコールバック
+    $Callbacks[ 'OnFinished' ].Invoke();
 }

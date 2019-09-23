@@ -1,28 +1,66 @@
+#------------------------------------------------------------------------------
+# インクルード
+#------------------------------------------------------------------------------
 . .\outlook.ps1
 . .\content-property.ps1
 . .\background-task.ps1
 
+#------------------------------------------------------------------------------
 # const
+#------------------------------------------------------------------------------
 $xmlPath = '.\setting.xml'
 $key = 'schedule'
+$minInterval = 5
+$maxInterval = 60*24
 
+
+
+#------------------------------------------------------------------------------
+# 設定をロード
+#------------------------------------------------------------------------------
 if( Test-Path $xmlPath ) {
     $xml = [XML](Get-Content $xmlPath)
     $base = $xml.config.base
     $cid = $xml.config.cid
+
+    # 上下限を制限(分)
+    $tmpInterval = [int]$xml.config.interval
+    $tmpInterval = ( $tmpInterval, $minInterval | Measure -Maximum ).Maximum
+    $tmpInterval = ( $tmpInterval, $maxInterval | Measure -Minimum ).Minimum
+
+    # msに変換
+    $interval = 60 * 1000 * $tmpInterval
+
+    '更新間隔: {0}分' -f $tmpInterval | Write-Host
+} else {
+    echo "Cannot read setting.xml"
+    exit
 }
 
-echo $cid
-echo $base
+#------------------------------------------------------------------------------
+# 保存先のContent PropertyのURLを確認
+#------------------------------------------------------------------------------
+$url = Get-PropertyUrl -Base $base -Cid $Cid -Key $key
+'保存先URL: {0}' -f $url | Write-Host
 
-$cred = Get-Credential
+#------------------------------------------------------------------------------
+# ログイン情報を入力
+#------------------------------------------------------------------------------
+$cred = Get-Credential -Message　'Confluenceのログイン情報を入力'
 
+#------------------------------------------------------------------------------
+# 周期処理とそのコールバック
+#------------------------------------------------------------------------------
 function timer_function($notify){
     $entries = getCalendarEntries
     try {
         ForceUpdate-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $entries
     } catch {
         Write-Host $_
+    　　$notify.BalloonTipIcon = 'Error'
+    　　$notify.BalloonTipTitle = 'Outlook Schedule Uploader'
+    　　$notify.BalloonTipText = '例外発生のためバックグラウンド実行を終了します。'
+    　　$notify.ShowBalloonTip(3000)
         throw $_
     }
 
@@ -32,10 +70,10 @@ function timer_function($notify){
     $notify.Text = $message
 
     # バルーンで表示
-    $notify.BalloonTipIcon = 'Info'
-    $notify.BalloonTipText = $message
-    $notify.BalloonTipTitle = 'Outlook Schedule Uploader'
-    $notify.ShowBalloonTip(1000)
+    #　$notify.BalloonTipIcon = 'Info'
+    #　$notify.BalloonTipText = $message
+    #　$notify.BalloonTipTitle = 'Outlook Schedule Uploader'
+    #　$notify.ShowBalloonTip(1000)
 }
 
 $backgroundTaskCallbacks = @{
@@ -44,7 +82,9 @@ $backgroundTaskCallbacks = @{
     "OnFinished" = { write-host "[info] Stopped" }
 }
 
-# 更新が頻繁にあるため、起動時にこれまでのプロパティを消す
+#------------------------------------------------------------------------------
+# 起動前の準備(古いContent-Propertyを削除)
+#------------------------------------------------------------------------------
 try {
     Write-Host '[info] 既存のContent-Propertyを削除...'
     $res = Delete-Property -Base $base -Cid $cid -Key $key -Credential $cred
@@ -65,5 +105,8 @@ try {
     }
 }
 
-startBackgroundTask -Name 'CalendarScraper' -Interval ( 10 * 1000 ) -Callbacks $backgroundTaskCallbacks
+#------------------------------------------------------------------------------
+# バックグラウンドタスク起動
+#------------------------------------------------------------------------------
+startBackgroundTask -Name 'CalendarScraper' -Interval $interval -Callbacks $backgroundTaskCallbacks
 

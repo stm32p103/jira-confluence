@@ -2,4 +2,5 @@
 <config>
 <base>http://localhost:8090</base>
 <cid>6914052</cid>
+<interval>1</interval>
 </config>
