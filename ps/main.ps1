@@ -39,7 +39,7 @@ if( Test-Path $xmlPath ) {
     $tmpInterval = [int]$xml.config.updateIntervalMinutes
     $tmpInterval = ( $tmpInterval, $minInterval | Measure -Maximum ).Maximum
     $tmpInterval = ( $tmpInterval, $maxInterval | Measure -Minimum ).Minimum
-    $interval = 10 * 1000 * $tmpInterval
+    $interval = 60 * 1000 * $tmpInterval
 
     # ã‰ºŒÀ‚ğ§ŒÀ(•ª)
     $tmpPeriod = [int]$xml.config.period

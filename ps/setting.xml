@@ -4,5 +4,5 @@
 <base>http://localhost:8090</base>
 <cid>8028161</cid>
 <updateIntervalMinutes>1</updateIntervalMinutes>
-<period>2</period>
+<period>14</period>
 </config>
