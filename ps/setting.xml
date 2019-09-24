@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+<displayname>DisplayName</displayname>
 <base>http://localhost:8090</base>
-<cid>6914052</cid>
+<cid>8028161</cid>
 <updateIntervalMinutes>1</updateIntervalMinutes>
 <period>2</period>
 </config>

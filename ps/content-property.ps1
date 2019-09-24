@@ -52,7 +52,7 @@ function Request-Property {
   
     if( $Data -ne $NULL ) {
         $header.Add( 'Content-Type', 'application/json; charset=UTF-8' )
-        $json = $Data | ConvertTo-Json
+        $json = $Data | ConvertTo-Json -Depth 100
     }
   
     $res = Invoke-WebRequest $Url -Method $Method -Header $header -Body $json
@@ -161,12 +161,12 @@ function ForceUpdate-Property {
 
     if( $latest ) {
         Write-Host "[info] Content Property‚ğXV..."
-        $res = Update-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $entries -Version $version
+        $res = Update-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $Value -Version $version
     } else {
         Write-Host "[info] Content Property‚ğV‹Kì¬..."
 
         try {
-            $res = Create-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $entries
+            $res = Create-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $Value
         } catch {
             $statusCode = $_.Exception.Response.StatusCode
 

@@ -1,3 +1,5 @@
+# Scopeの使いかたNGのため見直し必要
+# Set-StrictMode -Version Latest
 #------------------------------------------------------------------------------
 # インクルード
 #------------------------------------------------------------------------------
@@ -13,7 +15,7 @@ $key = 'schedule'
 
 # 更新周期(分)
 $minInterval = 5
-$maxInterval = 60*24
+$maxInterval = 60 * 24
 
 # 当日を起点に何日分の情報を集めるか
 $minPeriod = 5
@@ -24,14 +26,20 @@ $maxPeriod = 60
 #------------------------------------------------------------------------------
 if( Test-Path $xmlPath ) {
     $xml = [XML](Get-Content $xmlPath)
+    # Confluence URLのベース
     $base = $xml.config.base
+
+    # PageId
     $cid = $xml.config.cid
+
+    # 表示名
+    $displayName = $xml.config.displayname
 
     # 上下限を制限(分)
     $tmpInterval = [int]$xml.config.updateIntervalMinutes
     $tmpInterval = ( $tmpInterval, $minInterval | Measure -Maximum ).Maximum
     $tmpInterval = ( $tmpInterval, $maxInterval | Measure -Minimum ).Minimum
-    $interval = 60 * 1000 * $tmpInterval
+    $interval = 10 * 1000 * $tmpInterval
 
     # 上下限を制限(分)
     $tmpPeriod = [int]$xml.config.period
@@ -66,7 +74,7 @@ if( $cred -eq $NULL ) {
 #------------------------------------------------------------------------------
 # 周期処理とそのコールバック
 #------------------------------------------------------------------------------
-function OnStart( $notify ){
+function OnStart(){
     Write-Host '[info] 開始'
     Write-Host '[info] 既存のContent-Propertyを削除...'
     try {
@@ -94,10 +102,16 @@ function OnTimeout( $notify ){
     $start = ( Get-Date ).Date
     $end = $start.AddDays( $period )
     $filter = createFilter -Start $start -End $end
+
     $entries = getCalendarEntries -Filter $filter
 
+    $sendData = @{
+        'name' = $displayName;
+        'entries' = $entries;
+    }
+
     try {
-        ForceUpdate-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $entries
+       ForceUpdate-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $sendData
     } catch {
         Write-Host $_
     　　$notify.BalloonTipIcon = 'Error'
