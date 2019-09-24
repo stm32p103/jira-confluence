@@ -1,7 +1,6 @@
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
   target: "web",
-	mode: "development",
+	mode: "production",
 	entry: "./index.ts",
 	output: {
 		filename: "index.js"
@@ -17,9 +16,6 @@ module.exports = {
 			{ test: /\.css/, loader: "css-loader" },
 			{ test: /\.(gif|png|jpg|eot|wof|woff|woff2|ttf|svg)$/, loader: "url-loader" }
 		]
-	},
-	optimization: {
-		minimizer: [ new UglifyJsPlugin() ],
 	},
 	externals: [
 		{

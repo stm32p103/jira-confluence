@@ -18,6 +18,10 @@
   "dependencies": {
     "@this/common": "file:../../modules/common",
     "@this/web": "file:../../modules/web",
-    "@types/jquery": "^3.3.31"
+    "@types/d3": "^5.7.2",
+    "@types/jquery": "^3.3.31",
+    "d3": "^5.12.0",
+    "dnpm": "^0.1.13",
+    "install": "^0.13.0"
   }
 }
