@@ -74,9 +74,22 @@ if( $cred -eq $NULL ) {
 #------------------------------------------------------------------------------
 # 周期処理とそのコールバック
 #------------------------------------------------------------------------------
-function OnStart(){
+function OnStart {
+    param( [object]$Notification )
     Write-Host '[info] 開始'
     Write-Host '[info] 既存のContent-Propertyを削除...'
+
+    # 通知を表示
+    $Notification.BalloonTipIcon = 'Info'
+    $Notification.BalloonTipTitle = 'Outlook Schedule Uploader'
+    $Notification.BalloonTipText = 'スケジュールのアップロード開始。'
+    $Notification.ShowBalloonTip(3000)
+    
+    # 更新日をツールチップに表示
+    $datetime = (Get-Date).ToString("yyyy/MM/dd HH:mm")
+    $message = "Last updated: {0}" -f $datetime
+    $Notification.Text = $message
+
     try {
         $res = Delete-Property -Base $base -Cid $cid -Key $key -Credential $cred
     } catch {
@@ -97,14 +110,22 @@ function OnStart(){
     }
 }
 #------------------------------------------------------------------------------
-function OnTimeout( $notify ){
+function OnTimeout {
+    param( [object]$Notification )
     # きりが良くなるよう、当日の0:00起点に指定された期間の予定を集める
     $start = ( Get-Date ).Date
     $end = $start.AddDays( $period )
     $filter = createFilter -Start $start -End $end
 
-    $entries = getCalendarEntries -Filter $filter
+    # 出席者の確認に使うユーザ名を取得する
+    $names = getAccountNames
+    
+    # 予定を抽出
+    $entries = getCalendarEntries -Filter $filter -Names $names
 
+    $entries | ConvertTo-Json | Write-Host
+
+    # 送信データを作成
     $sendData = @{
         'name' = $displayName;
         'entries' = $entries;
@@ -114,27 +135,33 @@ function OnTimeout( $notify ){
        ForceUpdate-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $sendData
     } catch {
         Write-Host $_
-    　　$notify.BalloonTipIcon = 'Error'
-    　　$notify.BalloonTipTitle = 'Outlook Schedule Uploader'
-    　　$notify.BalloonTipText = '例外発生のためバックグラウンド実行を終了します。'
-    　　$notify.ShowBalloonTip(3000)
+    　　$Notification.BalloonTipIcon = 'Error'
+    　　$Notification.BalloonTipTitle = 'Outlook Schedule Uploader'
+    　　$Notification.BalloonTipText = '例外発生のためバックグラウンド実行を終了します。'
+    　　$Notification.ShowBalloonTip(3000)
         throw $_
     }
     
     # 更新日をツールチップに表示
     $datetime = (Get-Date).ToString("yyyy/MM/dd HH:mm")
     $message = "Last updated: {0}" -f $datetime
-    $notify.Text = $message
+    $Notification.Text = $message
 }
 
-function OnStop() {
+function OnStop {
+    param( [object]$Notification )
+    # 通知を表示
+    $Notification.BalloonTipIcon = 'Info'
+    $Notification.BalloonTipTitle = 'Outlook Schedule Uploader'
+    $Notification.BalloonTipText = 'スケジュールのアップロード停止。'
+    $Notification.ShowBalloonTip(3000)
     write-host "[info] 停止"
 }
 
 $backgroundTaskCallbacks = @{
-    "OnStart"   = { OnStart }
-    "OnTimeout" = { OnTimeout $args[0] }
-    "OnStop"    = { OnStop }
+    "OnStart"   = { OnStart -Notification $args[0] }
+    "OnTimeout" = { OnTimeout -Notification $args[0] }
+    "OnStop"    = { OnStop -Notification $args[0] }
 }
 
 #------------------------------------------------------------------------------

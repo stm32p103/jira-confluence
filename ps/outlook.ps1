@@ -112,28 +112,28 @@ function createFilter {
 # ®Œ`‚µ‚½—\’è‚ğ•Ô‚·
 #------------------------------------------------------------------------------
 function getCalendarEntries {
-    param( [string]$Filter )
+    param(
+        [string]$Filter, 
+        [array][string]$Names)
     $calendarFolder = $mapi.GetDefaultFolder( $olFolderCalendar )
   
+    # ŒJ‚è•Ô‚µ‚Ì—\’è‚ğ“¾‚é‚½‚ß‚Ì€”õ
+    #https://docs.microsoft.com/ja-jp/office/vba/outlook/how-to/search-and-filter/search-the-calendar-for-appointments-that-occur-partially-or-entirely-in-a-given
     $items = $calendarFolder.Items
-    $items.IncludeRecurrences = $true;
     $items.Sort( '[Start]' );
+    $items.IncludeRecurrences = $true;
     
+    # ƒtƒBƒ‹ƒ^‚ğ‚©‚¯‚é
     if( $Filter ) {
         $selectedItems = $items.Restrict( $filter )
     } else {
         $selectedItems = $items
     }
 
-    # Outlook“à‚Ìƒ†[ƒU–¼‚ğæ“¾
-    $accounts = getAccountNames
-  
-    #ŒJ‚è•Ô‚µ‚Ì—\’è‚ğ“¾‚é‚½‚ß‚Ì€”õ
-    #https://docs.microsoft.com/ja-jp/office/vba/outlook/how-to/search-and-filter/search-the-calendar-for-appointments-that-occur-partially-or-entirely-in-a-given
     $entries = @()
     foreach( $item in $selectedItems ) {
         if( $item.Class -eq $olAppointment ) {
-            $tmp = format $item $accounts
+            $tmp = format $item $Names
             $entries += $tmp
         }
     }

@@ -53,6 +53,11 @@ function startBackgroundTask {
                 # Catchできない例外があれば終了する。
                 Write-Host '[error] Unhandled exception. Exit.'
                 Write-Host $_
+                
+                # 通知を表示
+                $notify_icon.BalloonTipIcon = 'Error'
+                $notify_icon.BalloonTipTitle = 'Outlook Schedule Uploader'
+                $notify_icon.BalloonTipText = '例外発生のため終了。'
                 $application_context.ExitThread()
             }
 
@@ -65,7 +70,7 @@ function startBackgroundTask {
         # 起動
         #----------------------------------------------------------------------
         try {
-            $Callbacks[ 'OnStart' ].Invoke();
+            $Callbacks[ 'OnStart' ].Invoke( $notify_icon );
         } catch {
             Write-Host "[error] 開始時処理失敗のため終了。"
             Write-Host $_
@@ -80,7 +85,7 @@ function startBackgroundTask {
         # 停止
         #----------------------------------------------------------------------
         # 周期処理終了後のコールバック
-        $Callbacks[ 'OnStop' ].Invoke();
+        $Callbacks[ 'OnStop' ].Invoke( $notify_icon );
 
 
         $timer.Stop()
