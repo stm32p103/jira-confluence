@@ -1,3 +1,7 @@
+# https://docs.microsoft.com/ja-jp/office/vba/api/outlook.namespace.getdefaultfolder
+$outlook = New-Object -ComObject Outlook.Application
+$mapi = $outlook.GetNameSpace("MAPI")
+
 #------------------------------------------------------------------------------
 # OlMeetingStatus
 # https://docs.microsoft.com/ja-jp/office/vba/api/outlook.olmeetingstatus
@@ -31,11 +35,12 @@ function toUnixEpoch {
 
 #------------------------------------------------------------------------------
 # ユーザ名を取得
+# (Attendees に含まれる文字列)
 #------------------------------------------------------------------------------
 function getAccountNames() {
     $tmp = @()
     foreach( $account in $mapi.Accounts ) {
-        $tmp += $account.DisplayName
+        $tmp += $account.CurrentUser.Name
     }
     return $tmp
 }
@@ -62,8 +67,8 @@ function contains( $target, $arr ) {
 function format( $item, $accountNames ) {
     # 主催者・必須・任意を判定する
     $isOrganiser = contains $item.Organizer $accountNames
-    $isRequired  = contains $item.RequiredAtendees $accountNames
-    $isOptional  = contains $item.OptionalAtendees $accountNames
+    $isRequired  = contains $item.RequiredAttendees $accountNames
+    $isOptional  = contains $item.OptionalAttendees $accountNames
 
     $entry = @{
         "start" = toUnixEpoch -Date $item.Start
@@ -108,10 +113,6 @@ function createFilter {
 #------------------------------------------------------------------------------
 function getCalendarEntries {
     param( [string]$Filter )
-    
-    # https://docs.microsoft.com/ja-jp/office/vba/api/outlook.namespace.getdefaultfolder
-    $outlook = New-Object -ComObject Outlook.Application
-    $mapi = $outlook.GetNameSpace("MAPI")
     $calendarFolder = $mapi.GetDefaultFolder( $olFolderCalendar )
   
     $items = $calendarFolder.Items
@@ -138,5 +139,3 @@ function getCalendarEntries {
     }
     return $entries
 }
-
-
