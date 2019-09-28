@@ -49,7 +49,8 @@ function Request-Property {
     if( $Credential -ne $NULL ) {
         Append-AuthHeader -Credential $Credential -Header $header
     }
-  
+
+    $json = $NULL
     if( $Data -ne $NULL ) {
         $header.Add( 'Content-Type', 'application/json; charset=UTF-8' )
         $json = $Data | ConvertTo-Json -Depth 100
@@ -137,13 +138,20 @@ function ForceUpdate-Property {
         [parameter(mandatory)][object]$Value,
         [parameter(mandatory)][object]$Credential
     )
+    $latest = $NULL
+
     try {
         # 取得した応答のContentをJSONに変換し、次のバージョンを算出する
         $latest = ( ( Get-Property -Base $Base -Cid $Cid -Key $Key -Credential $Credential ).Content | ConvertFrom-Json )
         $version = $latest.version.number + 1
     } catch {
-        # 応答からステータスコードを取得
-        $statusCode = $_.Exception.Response.StatusCode
+        # 存在しないプロパティを触れないので、まずサーバの応答があるかしらべる
+        try {
+            $tmp = $_
+            $statusCode = $_.Exception.Response.StatusCode
+        } catch {
+            throw $tmp
+        }
 
         if( $statusCode -eq 'Unauthorized' ) {
             # 権限ない場合は続行不可
@@ -168,7 +176,12 @@ function ForceUpdate-Property {
         try {
             $res = Create-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $Value
         } catch {
-            $statusCode = $_.Exception.Response.StatusCode
+            try {
+                $tmp = $_
+                $statusCode = $_.Exception.Response.StatusCode
+            } catch {
+                throw $tmp
+            }
 
             # プロパティが作れないとしたら、設定ミスなので続行不可
             if( $statusCode -eq 'Forbidden' ) {

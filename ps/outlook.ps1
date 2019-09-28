@@ -25,20 +25,12 @@ $olAppointment = 26
 $olFolderCalendar = 9
 
 #------------------------------------------------------------------------------
-# Unix Epoch
-#------------------------------------------------------------------------------
-$UNIX_EPOCH = Get-Date("1970/1/1 0:0:0 GMT")
-function toUnixEpoch {
-    param( [datetime]$Date )    
-    return ( $Date - $UNIX_EPOCH ).TotalMilliSeconds
-}
-
-#------------------------------------------------------------------------------
 # ユーザ名を取得
 # (Attendees に含まれる文字列)
 #------------------------------------------------------------------------------
-function getAccountNames() {
-    $tmp = @()
+function Get-AccountNames {
+    [string[]]$tmp = @()
+
     foreach( $account in $mapi.Accounts ) {
         $tmp += $account.CurrentUser.Name
     }
@@ -62,44 +54,22 @@ function contains( $target, $arr ) {
 }
 
 #------------------------------------------------------------------------------
-# 予定をJSONに変換する
-#------------------------------------------------------------------------------
-function format( $item, $accountNames ) {
-    # 主催者・必須・任意を判定する
-    $isOrganiser = contains $item.Organizer $accountNames
-    $isRequired  = contains $item.RequiredAttendees $accountNames
-    $isOptional  = contains $item.OptionalAttendees $accountNames
-
-    $entry = @{
-        "start" = toUnixEpoch -Date $item.Start
-        "end" = toUnixEpoch -Date  $item.End
-        "allDay" = $item.AllDayEvent;
-        "org" = $isOrganiser;
-        "req" = $isRequired;
-        "opt" = $isOptional;
-        "status" = $item.MeetingStatus;
-    }
-    return $entry
-}
-
-#------------------------------------------------------------------------------
-# フィルタ
-# 開始日と終了日だけ
+# 期間によるフィルタ文字列を作る
 # https://docs.microsoft.com/ja-jp/office/vba/api/outlook.items.find
 #------------------------------------------------------------------------------
 $DATETIME_FORMAT = "MM/dd/yyyy hh:mm"
-function createFilter {
+function Create-TermFilter {
     param(
         [datetime]$Start,
         [datetime]$End
     )
 
     if( $Start ) {
-        $startFilter += "[Start]>='{0}'" -f $Start.ToString($DATETIME_FORMAT)
+        $startFilter += "[Start]>='{0}'" -f $Start.ToString( $DATETIME_FORMAT )
     }
 
     if( $End ) {
-        $endFilter += "[End]<='{0}'" -f $End.ToString($DATETIME_FORMAT)
+        $endFilter += "[End]<='{0}'" -f $End.ToString( $DATETIME_FORMAT )
     }
 
     $filter = $startFilter, $endFilter -join ' AND '
@@ -107,35 +77,61 @@ function createFilter {
     return $filter
 }
 
-
 #------------------------------------------------------------------------------
-# 整形した予定を返す
+# 予定表からItemsを返す
+# https://docs.microsoft.com/ja-jp/office/vba/outlook/how-to/search-and-filter/search-the-calendar-for-appointments-that-occur-partially-or-entirely-in-a-given
 #------------------------------------------------------------------------------
-function getCalendarEntries {
+function Get-CalendarItems {
     param(
-        [string]$Filter, 
-        [array][string]$Names)
+        [string]$Filter
+    )
     $calendarFolder = $mapi.GetDefaultFolder( $olFolderCalendar )
-  
+    
     # 繰り返しの予定を得るための準備
-    #https://docs.microsoft.com/ja-jp/office/vba/outlook/how-to/search-and-filter/search-the-calendar-for-appointments-that-occur-partially-or-entirely-in-a-given
     $items = $calendarFolder.Items
     $items.Sort( '[Start]' );
     $items.IncludeRecurrences = $true;
     
-    # フィルタをかける
+    # フィルタがあればかける
     if( $Filter ) {
-        $selectedItems = $items.Restrict( $filter )
+        $selected = $Items.Restrict( $filter )
     } else {
-        $selectedItems = $items
+        $selected =$Items
     }
 
-    $entries = @()
-    foreach( $item in $selectedItems ) {
-        if( $item.Class -eq $olAppointment ) {
-            $tmp = format $item $Names
-            $entries += $tmp
+    return $selected
+}
+
+#------------------------------------------------------------------------------
+# Itemsに対して処理する
+# AppointmentItemに限定
+#------------------------------------------------------------------------------
+function ForEach-CalendarItems {
+    param(
+        [parameter( mandatory, ValueFromPipeline )][ValidateNotNullOrEmpty()]$Items,
+        [parameter( mandatory )][ValidateNotNullOrEmpty()]$Process,
+        [ValidateNotNullOrEmpty()]$Begin,
+        [ValidateNotNullOrEmpty()]$End
+    )
+    begin {
+        $results = @()
+        if( $Begin ) {
+            $Begin.Invoke()
         }
     }
-    return $entries
+    process {
+        # Pipelineから得たItems(AppointementItemの集まり)に対し、
+        # AppointmentItemであることを確認してから、与えられたProcessコールバックを呼び出す
+        foreach( $item in $Items ) {
+            if( $item.Class -eq $olAppointment ) {
+                $results += $Process.Invoke( $item )
+            }
+        }
+    }
+    end {
+        if( $End ) {
+            $End.Invoke()
+        }
+        return $results
+    }
 }

@@ -1,3 +1,4 @@
+Set-StrictMode -Version Latest
 # Scopeの使いかたNGのため見直し必要
 # Set-StrictMode -Version Latest
 #------------------------------------------------------------------------------
@@ -6,6 +7,7 @@
 . .\outlook.ps1
 . .\content-property.ps1
 . .\background-task.ps1
+. .\format.ps1
 
 #------------------------------------------------------------------------------
 # const
@@ -83,7 +85,7 @@ function OnStart {
     $Notification.BalloonTipIcon = 'Info'
     $Notification.BalloonTipTitle = 'Outlook Schedule Uploader'
     $Notification.BalloonTipText = 'スケジュールのアップロード開始。'
-    $Notification.ShowBalloonTip(3000)
+    $Notification.ShowBalloonTip(1000)
     
     # 更新日をツールチップに表示
     $datetime = (Get-Date).ToString("yyyy/MM/dd HH:mm")
@@ -93,7 +95,17 @@ function OnStart {
     try {
         $res = Delete-Property -Base $base -Cid $cid -Key $key -Credential $cred
     } catch {
-        $statusCode = $_.Exception.Response.StatusCode
+        try {
+            $tmp = $_
+            $err = $_.Exception.Response
+        } catch {
+            # サーバの応答がないか、内部のエラー
+            throw $tmp
+        }
+
+        # 応答があったらステータスコードを確認
+        $statusCode = $err.StatusCode
+
         # プロパティが作れないとしたら、設定ミスなので続行不可
         if( $statusCode -eq 'Unauthorized' ) {
             # 権限ない場合は続行不可
@@ -115,34 +127,36 @@ function OnTimeout {
     # きりが良くなるよう、当日の0:00起点に指定された期間の予定を集める
     $start = ( Get-Date ).Date
     $end = $start.AddDays( $period )
-    $filter = createFilter -Start $start -End $end
+    $filter = Create-TermFilter -Start $start -End $end
 
-    # 出席者の確認に使うユーザ名を取得する
-    $names = getAccountNames
+    # 出席者の確認に使うユーザ名を念のため再取得する
+    $names = Get-AccountNames
     
     # 予定を抽出
-    $entries = getCalendarEntries -Filter $filter -Names $names
 
-    $entries | ConvertTo-Json | Write-Host
+    $entries = Get-CalendarItems | ForEach-CalendarItems -Process { Format-Item -Item $_ -Attendees $names }
 
     # 送信データを作成
     $sendData = @{
         'name' = $displayName;
         'entries' = $entries;
     }
-
+    
     try {
        ForceUpdate-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $sendData
     } catch {
         Write-Host $_
+
+        # 通知
     　　$Notification.BalloonTipIcon = 'Error'
     　　$Notification.BalloonTipTitle = 'Outlook Schedule Uploader'
     　　$Notification.BalloonTipText = '例外発生のためバックグラウンド実行を終了します。'
-    　　$Notification.ShowBalloonTip(3000)
-        throw $_
+    　　$Notification.ShowBalloonTip(1000)
+
+        throw $err
     }
     
-    # 更新日をツールチップに表示
+    # バルーン更新
     $datetime = (Get-Date).ToString("yyyy/MM/dd HH:mm")
     $message = "Last updated: {0}" -f $datetime
     $Notification.Text = $message
@@ -150,12 +164,15 @@ function OnTimeout {
 
 function OnStop {
     param( [object]$Notification )
-    # 通知を表示
+
+    # 通知
     $Notification.BalloonTipIcon = 'Info'
     $Notification.BalloonTipTitle = 'Outlook Schedule Uploader'
     $Notification.BalloonTipText = 'スケジュールのアップロード停止。'
-    $Notification.ShowBalloonTip(3000)
-    write-host "[info] 停止"
+    $Notification.ShowBalloonTip(1000)
+
+    # コンソール
+    Write-host "[info] 停止"
 }
 
 $backgroundTaskCallbacks = @{
