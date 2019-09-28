@@ -1,4 +1,4 @@
-﻿# https://qiita.com/magiclib/items/cc2de9169c781642e52d
+# https://qiita.com/magiclib/items/cc2de9169c781642e52d
 # ほぼそのまま利用
 
 Add-Type -AssemblyName System.Windows.Forms

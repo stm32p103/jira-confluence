@@ -8,7 +8,7 @@ function toUnixEpoch {
 }
 
 #------------------------------------------------------------------------------
-# —\’è‚ğJSON‚É•ÏŠ·‚·‚é
+# äºˆå®šã‚’JSONã«å¤‰æ›ã™ã‚‹
 #------------------------------------------------------------------------------
 function Format-Item {
     param(
@@ -16,7 +16,7 @@ function Format-Item {
         [string[]]$Attendees
     )
     
-    # Attendees ‚ªİ’è‚³‚ê‚Ä‚¢‚½‚çAåÃÒE•K{E”CˆÓ‚ğ”»’è‚·‚é
+    # Attendees ãŒè¨­å®šã•ã‚Œã¦ã„ãŸã‚‰ã€ä¸»å‚¬è€…ãƒ»å¿…é ˆãƒ»ä»»æ„ã‚’åˆ¤å®šã™ã‚‹
     if( $Attendees ) {
         $isOrganiser = contains $Item.Organizer $Attendees
         $isRequired  = contains $Item.RequiredAttendees $Attendees

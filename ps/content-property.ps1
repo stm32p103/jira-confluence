@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
 # HTTP Basic Auth
-# —^‚¦‚ç‚ê‚½Header‚ÉABasic Authenticationƒwƒbƒ_‚ğ’Ç‰Á‚·‚éB
+# ä¸ãˆã‚‰ã‚ŒãŸHeaderã«ã€Basic Authenticationãƒ˜ãƒƒãƒ€ã‚’è¿½åŠ ã™ã‚‹ã€‚
 #------------------------------------------------------------------------------
 function Append-AuthHeader {
     param(
@@ -35,7 +35,7 @@ function Get-PropertyUrl {
 
 #------------------------------------------------------------------------------
 # Contenet Property REST API
-# HTTPƒŠƒNƒGƒXƒg‚ğ”­s‚·‚é•”•ª(‹¤’Ê)
+# HTTPãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚’ç™ºè¡Œã™ã‚‹éƒ¨åˆ†(å…±é€š)
 #------------------------------------------------------------------------------
 function Request-Property {
     param(
@@ -129,7 +129,7 @@ function Delete-Property {
     return $res  
 }
 #------------------------------------------------------------------------------
-# ‹­§“I‚ÉXV‚·‚éE‘¶İ‚µ‚È‚¯‚ê‚Îì‚é
+# å¼·åˆ¶çš„ã«æ›´æ–°ã™ã‚‹ãƒ»å­˜åœ¨ã—ãªã‘ã‚Œã°ä½œã‚‹
 function ForceUpdate-Property {
     param(
         [parameter(mandatory)][string]$Base,
@@ -141,11 +141,11 @@ function ForceUpdate-Property {
     $latest = $NULL
 
     try {
-        # æ“¾‚µ‚½‰“š‚ÌContent‚ğJSON‚É•ÏŠ·‚µAŸ‚Ìƒo[ƒWƒ‡ƒ“‚ğZo‚·‚é
+        # å–å¾—ã—ãŸå¿œç­”ã®Contentã‚’JSONã«å¤‰æ›ã—ã€æ¬¡ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã‚’ç®—å‡ºã™ã‚‹
         $latest = ( ( Get-Property -Base $Base -Cid $Cid -Key $Key -Credential $Credential ).Content | ConvertFrom-Json )
         $version = $latest.version.number + 1
     } catch {
-        # ‘¶İ‚µ‚È‚¢ƒvƒƒpƒeƒB‚ğG‚ê‚È‚¢‚Ì‚ÅA‚Ü‚¸ƒT[ƒo‚Ì‰“š‚ª‚ ‚é‚©‚µ‚ç‚×‚é
+        # å­˜åœ¨ã—ãªã„ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’è§¦ã‚Œãªã„ã®ã§ã€ã¾ãšã‚µãƒ¼ãƒã®å¿œç­”ãŒã‚ã‚‹ã‹ã—ã‚‰ã¹ã‚‹
         try {
             $tmp = $_
             $statusCode = $_.Exception.Response.StatusCode
@@ -154,24 +154,24 @@ function ForceUpdate-Property {
         }
 
         if( $statusCode -eq 'Unauthorized' ) {
-            # Œ ŒÀ‚È‚¢ê‡‚Í‘±s•s‰Â
-            Write-Host "[error] ƒ†[ƒU–¼‚Ü‚½‚ÍƒpƒXƒ[ƒh‚ª•sˆê’vB"
+            # æ¨©é™ãªã„å ´åˆã¯ç¶šè¡Œä¸å¯
+            Write-Host "[error] ãƒ¦ãƒ¼ã‚¶åã¾ãŸã¯ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ãŒä¸ä¸€è‡´ã€‚"
             throw $_
         } elseif( $statusCode -eq 'NotFound' ) {
-            # Œ©‚Â‚©‚ç‚È‚¢ê‡‚ÍV‹Kì¬‚Å‚«‚é‚©‚à‚µ‚ê‚È‚¢‚½‚ßA‘±s‰Â”\B
-            Write-Host "[info] Content Property‚Ü‚½‚ÍContent‚ª‘¶İ‚µ‚È‚¢B"
+            # è¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯æ–°è¦ä½œæˆã§ãã‚‹ã‹ã‚‚ã—ã‚Œãªã„ãŸã‚ã€ç¶šè¡Œå¯èƒ½ã€‚
+            Write-Host "[info] Content Propertyã¾ãŸã¯ContentãŒå­˜åœ¨ã—ãªã„ã€‚"
         } else {
-            # URLŠÔˆá‚¢‚à‚±‚±‚É•ª—Ş‚³‚ê‚é
-            Write-Host "[error] –¢•ª—Ş‚ÌƒGƒ‰[B"
+            # URLé–“é•ã„ã‚‚ã“ã“ã«åˆ†é¡ã•ã‚Œã‚‹
+            Write-Host "[error] æœªåˆ†é¡ã®ã‚¨ãƒ©ãƒ¼ã€‚"
             throw $_
         }
     }
 
     if( $latest ) {
-        Write-Host "[info] Content Property‚ğXV..."
+        Write-Host "[info] Content Propertyã‚’æ›´æ–°..."
         $res = Update-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $Value -Version $version
     } else {
-        Write-Host "[info] Content Property‚ğV‹Kì¬..."
+        Write-Host "[info] Content Propertyã‚’æ–°è¦ä½œæˆ..."
 
         try {
             $res = Create-Property -Base $base -Cid $cid -Key $key -Credential $cred -Value $Value
@@ -183,17 +183,17 @@ function ForceUpdate-Property {
                 throw $tmp
             }
 
-            # ƒvƒƒpƒeƒB‚ªì‚ê‚È‚¢‚Æ‚µ‚½‚çAİ’èƒ~ƒX‚È‚Ì‚Å‘±s•s‰Â
+            # ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ãŒä½œã‚Œãªã„ã¨ã—ãŸã‚‰ã€è¨­å®šãƒŸã‚¹ãªã®ã§ç¶šè¡Œä¸å¯
             if( $statusCode -eq 'Forbidden' ) {
-                Write-Host "[error] w—ß‚³‚ê‚½Content‚ª‘¶İ‚µ‚È‚¢‚½‚ßAContent Propertyì¬•s‰ÂB"
+                Write-Host "[error] æŒ‡ä»¤ã•ã‚ŒãŸContentãŒå­˜åœ¨ã—ãªã„ãŸã‚ã€Content Propertyä½œæˆä¸å¯ã€‚"
                 throw $_
             } else {
-                # URLŠÔˆá‚¢‚à‚±‚±‚É•ª—Ş‚³‚ê‚é
-                Write-Host "[error] –¢•ª—Ş‚ÌƒGƒ‰[B"
+                # URLé–“é•ã„ã‚‚ã“ã“ã«åˆ†é¡ã•ã‚Œã‚‹
+                Write-Host "[error] æœªåˆ†é¡ã®ã‚¨ãƒ©ãƒ¼ã€‚"
                 throw $_
             }
         }
     }
-    #  update or post‚ÌŒ‹‰Ê‚ğ•Ô‚·
+    #  update or postã®çµæœã‚’è¿”ã™
     return $res
 }
