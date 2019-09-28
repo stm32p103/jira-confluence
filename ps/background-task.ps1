@@ -1,5 +1,5 @@
-# https://qiita.com/magiclib/items/cc2de9169c781642e52d
-# ‚Ù‚Ú‚»‚Ì‚Ü‚Ü—˜—p
+ï»¿# https://qiita.com/magiclib/items/cc2de9169c781642e52d
+# ã»ã¼ãã®ã¾ã¾åˆ©ç”¨
 
 Add-Type -AssemblyName System.Windows.Forms
 
@@ -10,39 +10,39 @@ function startBackgroundTask {
         [parameter(mandatory)][hashtable]$Callbacks
     )
     
-    # ‘½d‹N“®ƒ`ƒFƒbƒN
+    # å¤šé‡èµ·å‹•ãƒã‚§ãƒƒã‚¯
     $mutex = New-Object System.Threading.Mutex($false, $Name)
     if ($mutex.WaitOne(0, $false)){
         #----------------------------------------------------------------------
-        # Form\’z
+        # Formæ§‹ç¯‰
         #----------------------------------------------------------------------
-        # ƒ^ƒXƒNƒo[”ñ•\¦
+        # ã‚¿ã‚¹ã‚¯ãƒãƒ¼éè¡¨ç¤º
         $windowcode = '[DllImport("user32.dll")] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);'
         $asyncwindow = Add-Type -MemberDefinition $windowcode -name Win32ShowWindowAsync -namespace Win32Functions -PassThru
         $null = $asyncwindow::ShowWindowAsync((Get-Process -PID $pid).MainWindowHandle, 0)
 
         $application_context = New-Object System.Windows.Forms.ApplicationContext
         $timer = New-Object Windows.Forms.Timer
-        $path = Get-Process -id $pid | Select-Object -ExpandProperty Path # icon—p
+        $path = Get-Process -id $pid | Select-Object -ExpandProperty Path # iconç”¨
         $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
 
-        # ƒ^ƒXƒNƒgƒŒƒCƒAƒCƒRƒ“
+        # ã‚¿ã‚¹ã‚¯ãƒˆãƒ¬ã‚¤ã‚¢ã‚¤ã‚³ãƒ³
         $notify_icon = New-Object System.Windows.Forms.NotifyIcon
         $notify_icon.Icon = $icon
         $notify_icon.Visible = $true
 
-        # ƒƒjƒ…[
+        # ãƒ¡ãƒ‹ãƒ¥ãƒ¼
         $menu_item_exit = New-Object System.Windows.Forms.MenuItem
-        $menu_item_exit.Text = "I—¹"
+        $menu_item_exit.Text = "çµ‚äº†"
         $notify_icon.ContextMenu = New-Object System.Windows.Forms.ContextMenu
         $notify_icon.contextMenu.MenuItems.AddRange( $menu_item_exit )
 
-        # Exitƒƒjƒ…[ƒNƒŠƒbƒN‚ÌƒCƒxƒ“ƒg
+        # Exitãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¯ãƒªãƒƒã‚¯æ™‚ã®ã‚¤ãƒ™ãƒ³ãƒˆ
         $menu_item_exit.add_Click({
             $application_context.ExitThread()
         })
 
-        # ƒ^ƒCƒ}[ƒCƒxƒ“ƒg.
+        # ã‚¿ã‚¤ãƒãƒ¼ã‚¤ãƒ™ãƒ³ãƒˆ.
         $timer.Enabled = $true
         $timer.Add_Tick({
             $timer.Stop()
@@ -50,29 +50,29 @@ function startBackgroundTask {
             try{
                 $Callbacks[ 'OnTimeout' ].Invoke( $notify_icon );
             } catch {
-                # Catch‚Å‚«‚È‚¢—áŠO‚ª‚ ‚ê‚ÎI—¹‚·‚éB
+                # Catchã§ããªã„ä¾‹å¤–ãŒã‚ã‚Œã°çµ‚äº†ã™ã‚‹ã€‚
                 Write-Host '[error] Unhandled exception. Exit.'
                 Write-Host $_
                 
-                # ’Ê’m‚ğ•\¦
+                # é€šçŸ¥ã‚’è¡¨ç¤º
                 $notify_icon.BalloonTipIcon = 'Error'
                 $notify_icon.BalloonTipTitle = 'Outlook Schedule Uploader'
-                $notify_icon.BalloonTipText = '—áŠO”­¶‚Ì‚½‚ßI—¹B'
+                $notify_icon.BalloonTipText = 'ä¾‹å¤–ç™ºç”Ÿã®ãŸã‚çµ‚äº†ã€‚'
                 $application_context.ExitThread()
             }
 
-            # ƒCƒ“ƒ^[ƒoƒ‹‚ğÄİ’è‚µ‚Äƒ^ƒCƒ}[ÄŠJ
+            # ã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒ«ã‚’å†è¨­å®šã—ã¦ã‚¿ã‚¤ãƒãƒ¼å†é–‹
             $timer.Interval = $Interval
             $timer.Start()
         })
         
         #----------------------------------------------------------------------
-        # ‹N“®
+        # èµ·å‹•
         #----------------------------------------------------------------------
         try {
             $Callbacks[ 'OnStart' ].Invoke( $notify_icon );
         } catch {
-            Write-Host "[error] ŠJnˆ—¸”s‚Ì‚½‚ßI—¹B"
+            Write-Host "[error] é–‹å§‹æ™‚å‡¦ç†å¤±æ•—ã®ãŸã‚çµ‚äº†ã€‚"
             Write-Host $_
             exit
         }
@@ -82,9 +82,9 @@ function startBackgroundTask {
         [void][System.Windows.Forms.Application]::Run( $application_context )
         
         #----------------------------------------------------------------------
-        # ’â~
+        # åœæ­¢
         #----------------------------------------------------------------------
-        # üŠúˆ—I—¹Œã‚ÌƒR[ƒ‹ƒoƒbƒN
+        # å‘¨æœŸå‡¦ç†çµ‚äº†å¾Œã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
         $Callbacks[ 'OnStop' ].Invoke( $notify_icon );
 
 
@@ -92,7 +92,7 @@ function startBackgroundTask {
         $notify_icon.Visible = $false
         $mutex.ReleaseMutex()
     } else {
-        Write-Host '[info] ‹N“®Ï‚İ‚Ì‚½‚ßI—¹B'
+        Write-Host '[info] èµ·å‹•æ¸ˆã¿ã®ãŸã‚çµ‚äº†ã€‚'
     }
     $mutex.Close()
     
