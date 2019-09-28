@@ -1,13 +1,13 @@
 #------------------------------------------------------------------------------
-# ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
+# ƒCƒ“ƒNƒ‹[ƒh
 #------------------------------------------------------------------------------
 . .\outlook.ps1
 . .\format.ps1
 
-# ã‚¢ã‚«ã‚¦ãƒ³ãƒˆåå–å¾—
+# ƒAƒJƒEƒ“ƒg–¼æ“¾
 $users = Get-AccountNames
 
-# æœŸé–“ã‚’è¨­å®š
+# ŠúŠÔ‚ğİ’è
 $start = ( Get-Date -year 2019 -Month 9 -Day 10 ).Date
 $end = $start.AddDays( 30 )
 $filter = Create-TermFilter -Start $start -End $end
@@ -15,10 +15,10 @@ $filter = Create-TermFilter -Start $start -End $end
 Get-CalendarItems | ForEach-CalendarItems -Process { Format-Item -Item $_ -Attendees $users }
 # | ForEach-CalendarItems -Process { $_ }
     
-# äºˆå®šã‚’æŠ½å‡º
+# —\’è‚ğ’Šo
 # $entries = getCalendarEntries -Filter $filter -Names $names
 
-# è¡¨ç¤º
+# •\¦
 # $names | ConvertTo-Json | Write-Host
 # $entries | ConvertTo-Json | Write-Host
 

@@ -25,8 +25,8 @@ $olAppointment = 26
 $olFolderCalendar = 9
 
 #------------------------------------------------------------------------------
-# ãƒ¦ãƒ¼ã‚¶åã‚’å–å¾—
-# (Attendees ã«å«ã¾ã‚Œã‚‹æ–‡å­—åˆ—)
+# ƒ†[ƒU–¼‚ğæ“¾
+# (Attendees ‚ÉŠÜ‚Ü‚ê‚é•¶š—ñ)
 #------------------------------------------------------------------------------
 function Get-AccountNames {
     [string[]]$tmp = @()
@@ -38,7 +38,7 @@ function Get-AccountNames {
 }
 
 #------------------------------------------------------------------------------
-# ç¬¬1å¼•æ•°ãŒç¬¬2å¼•æ•°ã‚’å«ã‚€ã‹ç¢ºèªã™ã‚‹
+# ‘æ1ˆø”‚ª‘æ2ˆø”‚ğŠÜ‚Ş‚©Šm”F‚·‚é
 #------------------------------------------------------------------------------
 function contains( $target, $arr ) {
     $res = $FALSE
@@ -54,7 +54,7 @@ function contains( $target, $arr ) {
 }
 
 #------------------------------------------------------------------------------
-# æœŸé–“ã«ã‚ˆã‚‹ãƒ•ã‚£ãƒ«ã‚¿æ–‡å­—åˆ—ã‚’ä½œã‚‹
+# ŠúŠÔ‚É‚æ‚éƒtƒBƒ‹ƒ^•¶š—ñ‚ğì‚é
 # https://docs.microsoft.com/ja-jp/office/vba/api/outlook.items.find
 #------------------------------------------------------------------------------
 $DATETIME_FORMAT = "MM/dd/yyyy hh:mm"
@@ -78,7 +78,7 @@ function Create-TermFilter {
 }
 
 #------------------------------------------------------------------------------
-# äºˆå®šè¡¨ã‹ã‚‰Itemsã‚’è¿”ã™
+# —\’è•\‚©‚çItems‚ğ•Ô‚·
 # https://docs.microsoft.com/ja-jp/office/vba/outlook/how-to/search-and-filter/search-the-calendar-for-appointments-that-occur-partially-or-entirely-in-a-given
 #------------------------------------------------------------------------------
 function Get-CalendarItems {
@@ -87,12 +87,12 @@ function Get-CalendarItems {
     )
     $calendarFolder = $mapi.GetDefaultFolder( $olFolderCalendar )
     
-    # ç¹°ã‚Šè¿”ã—ã®äºˆå®šã‚’å¾—ã‚‹ãŸã‚ã®æº–å‚™
+    # ŒJ‚è•Ô‚µ‚Ì—\’è‚ğ“¾‚é‚½‚ß‚Ì€”õ
     $items = $calendarFolder.Items
     $items.Sort( '[Start]' );
     $items.IncludeRecurrences = $true;
     
-    # ãƒ•ã‚£ãƒ«ã‚¿ãŒã‚ã‚Œã°ã‹ã‘ã‚‹
+    # ƒtƒBƒ‹ƒ^‚ª‚ ‚ê‚Î‚©‚¯‚é
     if( $Filter ) {
         $selected = $Items.Restrict( $filter )
     } else {
@@ -103,8 +103,8 @@ function Get-CalendarItems {
 }
 
 #------------------------------------------------------------------------------
-# Itemsã«å¯¾ã—ã¦å‡¦ç†ã™ã‚‹
-# AppointmentItemã«é™å®š
+# Items‚É‘Î‚µ‚Äˆ—‚·‚é
+# AppointmentItem‚ÉŒÀ’è
 #------------------------------------------------------------------------------
 function ForEach-CalendarItems {
     param(
@@ -120,8 +120,8 @@ function ForEach-CalendarItems {
         }
     }
     process {
-        # Pipelineã‹ã‚‰å¾—ãŸItems(AppointementItemã®é›†ã¾ã‚Š)ã«å¯¾ã—ã€
-        # AppointmentItemã§ã‚ã‚‹ã“ã¨ã‚’ç¢ºèªã—ã¦ã‹ã‚‰ã€ä¸ãˆã‚‰ã‚ŒãŸProcessã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’å‘¼ã³å‡ºã™
+        # Pipeline‚©‚ç“¾‚½Items(AppointementItem‚ÌW‚Ü‚è)‚É‘Î‚µA
+        # AppointmentItem‚Å‚ ‚é‚±‚Æ‚ğŠm”F‚µ‚Ä‚©‚çA—^‚¦‚ç‚ê‚½ProcessƒR[ƒ‹ƒoƒbƒN‚ğŒÄ‚Ño‚·
         foreach( $item in $Items ) {
             if( $item.Class -eq $olAppointment ) {
                 $results += $Process.Invoke( $item )
