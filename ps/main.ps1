@@ -1,8 +1,8 @@
-Set-StrictMode -Version Latest
-# Scope‚Ìg‚¢‚©‚½NG‚Ì‚½‚ßŒ©’¼‚µ•K—v
+ï»¿Set-StrictMode -Version Latest
+# Scopeã®ä½¿ã„ã‹ãŸNGã®ãŸã‚è¦‹ç›´ã—å¿…è¦
 # Set-StrictMode -Version Latest
 #------------------------------------------------------------------------------
-# ƒCƒ“ƒNƒ‹[ƒh
+# ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
 #------------------------------------------------------------------------------
 . .\outlook.ps1
 . .\content-property.ps1
@@ -15,43 +15,43 @@ Set-StrictMode -Version Latest
 $xmlPath = '.\setting.xml'
 $key = 'schedule'
 
-# XVüŠú(•ª)
+# æ›´æ–°å‘¨æœŸ(åˆ†)
 $minInterval = 5
 $maxInterval = 60 * 24
 
-# “–“ú‚ğ‹N“_‚É‰½“ú•ª‚Ìî•ñ‚ğW‚ß‚é‚©
+# å½“æ—¥ã‚’èµ·ç‚¹ã«ä½•æ—¥åˆ†ã®æƒ…å ±ã‚’é›†ã‚ã‚‹ã‹
 $minPeriod = 5
 $maxPeriod = 60
 
 #------------------------------------------------------------------------------
-# İ’è‚ğƒ[ƒh
+# è¨­å®šã‚’ãƒ­ãƒ¼ãƒ‰
 #------------------------------------------------------------------------------
 if( Test-Path $xmlPath ) {
     $xml = [XML](Get-Content $xmlPath)
-    # Confluence URL‚Ìƒx[ƒX
+    # Confluence URLã®ãƒ™ãƒ¼ã‚¹
     $base = $xml.config.base
 
     # PageId
     $cid = $xml.config.cid
 
-    # •\¦–¼
+    # è¡¨ç¤ºå
     $displayName = $xml.config.displayname
 
-    # ã‰ºŒÀ‚ğ§ŒÀ(•ª)
+    # ä¸Šä¸‹é™ã‚’åˆ¶é™(åˆ†)
     $tmpInterval = [int]$xml.config.updateIntervalMinutes
     $tmpInterval = ( $tmpInterval, $minInterval | Measure -Maximum ).Maximum
     $tmpInterval = ( $tmpInterval, $maxInterval | Measure -Minimum ).Minimum
     $interval = 60 * 1000 * $tmpInterval
 
-    # ã‰ºŒÀ‚ğ§ŒÀ(•ª)
+    # ä¸Šä¸‹é™ã‚’åˆ¶é™(åˆ†)
     $tmpPeriod = [int]$xml.config.period
     $tmpPeriod = ( $tmpPeriod, $minPeriod | Measure -Maximum ).Maximum
     $tmpPeriod = ( $tmpPeriod, $maxPeriod | Measure -Minimum ).Minimum
     $period = $tmpPeriod
     
-    # ƒpƒ‰ƒ[ƒ^•\¦
-    'XVŠÔŠu: {0}•ª' -f $tmpInterval | Write-Host
-    '’ŠoŠúŠÔ: {0}“ú' -f $tmpPeriod   | Write-Host
+    # ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿è¡¨ç¤º
+    'æ›´æ–°é–“éš”: {0}åˆ†' -f $tmpInterval | Write-Host
+    'æŠ½å‡ºæœŸé–“: {0}æ—¥' -f $tmpPeriod   | Write-Host
 
 } else {
     echo "Cannot read setting.xml"
@@ -59,35 +59,35 @@ if( Test-Path $xmlPath ) {
 }
 
 #------------------------------------------------------------------------------
-# •Û‘¶æ‚ÌContent Property‚ÌURL‚ğŠm”F
+# ä¿å­˜å…ˆã®Content Propertyã®URLã‚’ç¢ºèª
 #------------------------------------------------------------------------------
 $url = Get-PropertyUrl -Base $base -Cid $Cid -Key $key
-'•Û‘¶æURL: {0}' -f $url | Write-Host
+'ä¿å­˜å…ˆURL: {0}' -f $url | Write-Host
 
 #------------------------------------------------------------------------------
-# ƒƒOƒCƒ“î•ñ‚ğ“ü—Í
+# ãƒ­ã‚°ã‚¤ãƒ³æƒ…å ±ã‚’å…¥åŠ›
 #------------------------------------------------------------------------------
-$cred = Get-Credential -Message@'Confluence‚ÌƒƒOƒCƒ“î•ñ‚ğ“ü—Í'
+$cred = Get-Credential -Messageã€€'Confluenceã®ãƒ­ã‚°ã‚¤ãƒ³æƒ…å ±ã‚’å…¥åŠ›'
 if( $cred -eq $NULL ) {
-    Write-Host '[info] ƒLƒƒƒ“ƒZƒ‹'
+    Write-Host '[info] ã‚­ãƒ£ãƒ³ã‚»ãƒ«'
     exit
 }
 
 #------------------------------------------------------------------------------
-# üŠúˆ—‚Æ‚»‚ÌƒR[ƒ‹ƒoƒbƒN
+# å‘¨æœŸå‡¦ç†ã¨ãã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
 #------------------------------------------------------------------------------
 function OnStart {
     param( [object]$Notification )
-    Write-Host '[info] ŠJn'
-    Write-Host '[info] Šù‘¶‚ÌContent-Property‚ğíœ...'
+    Write-Host '[info] é–‹å§‹'
+    Write-Host '[info] æ—¢å­˜ã®Content-Propertyã‚’å‰Šé™¤...'
 
-    # ’Ê’m‚ğ•\¦
+    # é€šçŸ¥ã‚’è¡¨ç¤º
     $Notification.BalloonTipIcon = 'Info'
     $Notification.BalloonTipTitle = 'Outlook Schedule Uploader'
-    $Notification.BalloonTipText = 'ƒXƒPƒWƒ…[ƒ‹‚ÌƒAƒbƒvƒ[ƒhŠJnB'
+    $Notification.BalloonTipText = 'ã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«ã®ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰é–‹å§‹ã€‚'
     $Notification.ShowBalloonTip(1000)
     
-    # XV“ú‚ğƒc[ƒ‹ƒ`ƒbƒv‚É•\¦
+    # æ›´æ–°æ—¥ã‚’ãƒ„ãƒ¼ãƒ«ãƒãƒƒãƒ—ã«è¡¨ç¤º
     $datetime = (Get-Date).ToString("yyyy/MM/dd HH:mm")
     $message = "Last updated: {0}" -f $datetime
     $Notification.Text = $message
@@ -99,24 +99,24 @@ function OnStart {
             $tmp = $_
             $err = $_.Exception.Response
         } catch {
-            # ƒT[ƒo‚Ì‰“š‚ª‚È‚¢‚©A“à•”‚ÌƒGƒ‰[
+            # ã‚µãƒ¼ãƒã®å¿œç­”ãŒãªã„ã‹ã€å†…éƒ¨ã®ã‚¨ãƒ©ãƒ¼
             throw $tmp
         }
 
-        # ‰“š‚ª‚ ‚Á‚½‚çƒXƒe[ƒ^ƒXƒR[ƒh‚ğŠm”F
+        # å¿œç­”ãŒã‚ã£ãŸã‚‰ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚³ãƒ¼ãƒ‰ã‚’ç¢ºèª
         $statusCode = $err.StatusCode
 
-        # ƒvƒƒpƒeƒB‚ªì‚ê‚È‚¢‚Æ‚µ‚½‚çAİ’èƒ~ƒX‚È‚Ì‚Å‘±s•s‰Â
+        # ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ãŒä½œã‚Œãªã„ã¨ã—ãŸã‚‰ã€è¨­å®šãƒŸã‚¹ãªã®ã§ç¶šè¡Œä¸å¯
         if( $statusCode -eq 'Unauthorized' ) {
-            # Œ ŒÀ‚È‚¢ê‡‚Í‘±s•s‰Â
-            Write-Host "[error] ƒ†[ƒU–¼‚Ü‚½‚ÍƒpƒXƒ[ƒh‚ª•sˆê’vB"
+            # æ¨©é™ãªã„å ´åˆã¯ç¶šè¡Œä¸å¯
+            Write-Host "[error] ãƒ¦ãƒ¼ã‚¶åã¾ãŸã¯ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ãŒä¸ä¸€è‡´ã€‚"
             throw $_
         }elseif( $statusCode -eq 'Forbidden' ) {
-            # ‘¶İ‚µ‚È‚¢‚¾‚¯‚©‚à‚µ‚ê‚È‚¢‚½‚ßA‘±s‰Â”\B
-            Write-Host "[info] w—ß‚³‚ê‚½Content‚ÍíœÏ‚İ‚©‘¶İ‚µ‚È‚¢B"
+            # å­˜åœ¨ã—ãªã„ã ã‘ã‹ã‚‚ã—ã‚Œãªã„ãŸã‚ã€ç¶šè¡Œå¯èƒ½ã€‚
+            Write-Host "[info] æŒ‡ä»¤ã•ã‚ŒãŸContentã¯å‰Šé™¤æ¸ˆã¿ã‹å­˜åœ¨ã—ãªã„ã€‚"
         } else {
-            # URLŠÔˆá‚¢‚à‚±‚±‚É•ª—Ş‚³‚ê‚éB
-            Write-Host "[error] –¢•ª—Ş‚ÌƒGƒ‰[B"
+            # URLé–“é•ã„ã‚‚ã“ã“ã«åˆ†é¡ã•ã‚Œã‚‹ã€‚
+            Write-Host "[error] æœªåˆ†é¡ã®ã‚¨ãƒ©ãƒ¼ã€‚"
             throw $_
         }
     }
@@ -124,19 +124,19 @@ function OnStart {
 #------------------------------------------------------------------------------
 function OnTimeout {
     param( [object]$Notification )
-    # ‚«‚è‚ª—Ç‚­‚È‚é‚æ‚¤A“–“ú‚Ì0:00‹N“_‚Éw’è‚³‚ê‚½ŠúŠÔ‚Ì—\’è‚ğW‚ß‚é
+    # ãã‚ŠãŒè‰¯ããªã‚‹ã‚ˆã†ã€å½“æ—¥ã®0:00èµ·ç‚¹ã«æŒ‡å®šã•ã‚ŒãŸæœŸé–“ã®äºˆå®šã‚’é›†ã‚ã‚‹
     $start = ( Get-Date ).Date
     $end = $start.AddDays( $period )
     $filter = Create-TermFilter -Start $start -End $end
 
-    # oÈÒ‚ÌŠm”F‚Ég‚¤ƒ†[ƒU–¼‚ğ”O‚Ì‚½‚ßÄæ“¾‚·‚é
+    # å‡ºå¸­è€…ã®ç¢ºèªã«ä½¿ã†ãƒ¦ãƒ¼ã‚¶åã‚’å¿µã®ãŸã‚å†å–å¾—ã™ã‚‹
     $names = Get-AccountNames
     
-    # —\’è‚ğ’Šo
+    # äºˆå®šã‚’æŠ½å‡º
 
     $entries = Get-CalendarItems | ForEach-CalendarItems -Process { Format-Item -Item $_ -Attendees $names }
 
-    # ‘—Mƒf[ƒ^‚ğì¬
+    # é€ä¿¡ãƒ‡ãƒ¼ã‚¿ã‚’ä½œæˆ
     $sendData = @{
         'name' = $displayName;
         'entries' = $entries;
@@ -147,16 +147,16 @@ function OnTimeout {
     } catch {
         Write-Host $_
 
-        # ’Ê’m
-    @@$Notification.BalloonTipIcon = 'Error'
-    @@$Notification.BalloonTipTitle = 'Outlook Schedule Uploader'
-    @@$Notification.BalloonTipText = '—áŠO”­¶‚Ì‚½‚ßƒoƒbƒNƒOƒ‰ƒEƒ“ƒhÀs‚ğI—¹‚µ‚Ü‚·B'
-    @@$Notification.ShowBalloonTip(1000)
+        # é€šçŸ¥
+    ã€€ã€€$Notification.BalloonTipIcon = 'Error'
+    ã€€ã€€$Notification.BalloonTipTitle = 'Outlook Schedule Uploader'
+    ã€€ã€€$Notification.BalloonTipText = 'ä¾‹å¤–ç™ºç”Ÿã®ãŸã‚ãƒãƒƒã‚¯ã‚°ãƒ©ã‚¦ãƒ³ãƒ‰å®Ÿè¡Œã‚’çµ‚äº†ã—ã¾ã™ã€‚'
+    ã€€ã€€$Notification.ShowBalloonTip(1000)
 
         throw $err
     }
     
-    # ƒoƒ‹[ƒ“XV
+    # ãƒãƒ«ãƒ¼ãƒ³æ›´æ–°
     $datetime = (Get-Date).ToString("yyyy/MM/dd HH:mm")
     $message = "Last updated: {0}" -f $datetime
     $Notification.Text = $message
@@ -165,14 +165,14 @@ function OnTimeout {
 function OnStop {
     param( [object]$Notification )
 
-    # ’Ê’m
+    # é€šçŸ¥
     $Notification.BalloonTipIcon = 'Info'
     $Notification.BalloonTipTitle = 'Outlook Schedule Uploader'
-    $Notification.BalloonTipText = 'ƒXƒPƒWƒ…[ƒ‹‚ÌƒAƒbƒvƒ[ƒh’â~B'
+    $Notification.BalloonTipText = 'ã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ«ã®ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰åœæ­¢ã€‚'
     $Notification.ShowBalloonTip(1000)
 
-    # ƒRƒ“ƒ\[ƒ‹
-    Write-host "[info] ’â~"
+    # ã‚³ãƒ³ã‚½ãƒ¼ãƒ«
+    Write-host "[info] åœæ­¢"
 }
 
 $backgroundTaskCallbacks = @{
@@ -182,6 +182,6 @@ $backgroundTaskCallbacks = @{
 }
 
 #------------------------------------------------------------------------------
-# ƒoƒbƒNƒOƒ‰ƒEƒ“ƒhƒ^ƒXƒN‹N“®
+# ãƒãƒƒã‚¯ã‚°ãƒ©ã‚¦ãƒ³ãƒ‰ã‚¿ã‚¹ã‚¯èµ·å‹•
 #------------------------------------------------------------------------------
 startBackgroundTask -Name 'CalendarScraper' -Interval $interval -Callbacks $backgroundTaskCallbacks

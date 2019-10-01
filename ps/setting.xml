@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <config>
 <displayname>DisplayName</displayname>
 <base>http://localhost:8090</base>
